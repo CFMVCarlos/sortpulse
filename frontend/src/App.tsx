@@ -4,6 +4,7 @@ import type { AlgorithmMeta, Trace } from './types/sort';
 import { fetchAlgorithms, fetchSortTrace } from './api/client';
 import { ControlBar } from './components/ControlBar';
 import { CanvasVisualizer } from './components/CanvasVisualizer';
+import { AlgorithmInfoCard } from './components/AlgorithmInfoCard';
 import type { BarState } from './components/CanvasVisualizer';
 
 function App() {
@@ -151,6 +152,14 @@ function App() {
             tempStates[idx1] = 'swapping';
             tempStates[idx2] = 'swapping';
           }
+        } else if (s.type === 'overwrite') {
+          const idx = s.indices[0];
+          if (s.value !== undefined) {
+             tempArray[idx] = s.value;
+          }
+          if (i === currentStepIndex) {
+            tempStates[idx] = 'swapping'; // Use swapping color for overwrites to highlight them
+          }
         } else if (s.type === 'mark_sorted') {
           s.indices.forEach(idx => {
             sortedIndices.add(idx);
@@ -158,6 +167,10 @@ function App() {
                tempStates[idx] = 'sorted';
             }
           });
+        } else if (s.type === 'pivot') {
+          if (i === currentStepIndex) {
+            s.indices.forEach(idx => tempStates[idx] = 'pivot');
+          }
         }
       }
 
@@ -221,6 +234,8 @@ function App() {
         array={currentArray}
         barStates={barStates}
       />
+
+      <AlgorithmInfoCard algorithm={algorithms.find(a => a.id === selectedAlgorithm) || null} />
 
       <div style={{ padding: '1rem', textAlign: 'center' }}>
         {trace && (
