@@ -24,18 +24,18 @@ This plan provides a structured, step-by-step path to guide your implementation 
 Create the core Go types and algorithm interface with an initial working Bubble Sort and comprehensive unit tests.
 
 ### Tasks
-- [ ] Create `internal/sorter/model.go`:
+- [x] Create `internal/sorter/model.go`:
   - Define `StepType` constants: `compare`, `swap`, `overwrite`, `pivot`, `mark_sorted`.
   - Define `Step`, `AlgorithmMeta`, and `Trace` structs with JSON tags.
   - Define the `Sorter` interface (`Meta() AlgorithmMeta` and `Sort(input []int) Trace`).
-- [ ] Create `internal/sorter/tracer.go`:
+- [x] Create `internal/sorter/tracer.go`:
   - Implement a helper struct `Tracer` that manages step history, comparison counts, swap counts, and array state.
   - Add helper methods: `Compare(i, j int, desc string) bool`, `Swap(i, j int, desc string)`, `MarkSorted(i int, desc string)`.
-- [ ] Create `internal/sorter/bubble.go`:
+- [x] Create `internal/sorter/bubble.go`:
   - Implement standard Bubble Sort using the `Tracer`.
   - Ensure the output trace accurately records all comparisons and swaps.
   - Mark elements sorted as the outer loop finishes each pass.
-- [ ] Create `internal/sorter/bubble_test.go`:
+- [x] Create `internal/sorter/bubble_test.go`:
   - Test with empty slice, single-element slice, already sorted slice, and reverse sorted slice.
   - Verify `final_array` matches standard `sort.Ints()` output.
   - Assert `total_steps > 0` and step indices are within bounds.
@@ -51,16 +51,16 @@ Run `go test -v ./internal/sorter/...` and see all tests pass cleanly.
 Expose the sorting engine over clean HTTP endpoints and allow the React frontend to communicate during development.
 
 ### Tasks
-- [ ] Create `internal/sorter/registry.go`:
+- [x] Create `internal/sorter/registry.go`:
   - Build a central registry map (`map[string]Sorter`) with `Register()`, `Get(id string) (Sorter, bool)`, and `List() []AlgorithmMeta`.
   - Register `bubble` sort in the registry.
-- [ ] Create `internal/api/handlers.go`:
+- [x] Create `internal/api/handlers.go`:
   - `GET /api/algorithms`: returns JSON array of all registered algorithm metadata.
   - `POST /api/sort`: decodes JSON request payload `{"algorithm": "...", "array": [...]}` and returns JSON `Trace`.
   - Add input validation: reject empty arrays, excessively large arrays (>500 items for safety), or unknown algorithm IDs.
-- [ ] Create `internal/api/cors.go`:
+- [x] Create `internal/api/cors.go`:
   - Implement simple CORS middleware to allow requests from `http://localhost:5173` (Vite dev server) with appropriate headers (`Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Headers`).
-- [ ] Create `cmd/server/main.go`:
+- [x] Create `cmd/server/main.go`:
   - Wire the router, apply CORS middleware, parse command-line flags (e.g. `-port=8080`), and start the server.
 
 ### Milestone 2 Check
@@ -78,19 +78,19 @@ curl -X POST http://localhost:8080/api/sort -H "Content-Type: application/json" 
 Build the interactive React frontend that fetches the trace and animates sorting bars on an HTML5 Canvas at 60 FPS.
 
 ### Tasks
-- [ ] Set up project structure in `frontend/src`:
+- [x] Set up project structure in `frontend/src`:
   - `types/sort.ts`: TypeScript interfaces matching Go's JSON responses (`Step`, `Trace`, `AlgorithmMeta`).
   - `api/client.ts`: Fetch helpers for `/api/algorithms` and `/api/sort`.
-- [ ] Create `components/ControlBar.tsx`:
+- [x] Create `components/ControlBar.tsx`:
   - Dropdown to select algorithm.
   - Array size slider (e.g. 10 to 150 items).
   - "Generate New Array" / "Shuffle" button (with presets: Random, Reverse, Nearly Sorted).
   - Play / Pause button and Speed slider (delay per step from 1ms to 200ms).
-- [ ] Create `components/CanvasVisualizer.tsx`:
+- [x] Create `components/CanvasVisualizer.tsx`:
   - Render vertical bars inside an HTML5 `<canvas>` using `requestAnimationFrame`.
   - Dynamically calculate bar width, spacing, and height proportional to array values and canvas dimensions.
   - Color bars according to state (default blue, comparing yellow, swapping red, sorted green).
-- [ ] State Machine in `App.tsx`:
+- [x] State Machine in `App.tsx`:
   - Fetch trace on sort trigger.
   - Maintain `currentStepIndex` state.
   - Step through `trace.steps` sequentially on timer ticks or animation frames.
@@ -108,20 +108,20 @@ Implement the comprehensive algorithm lab, covering quadratic, logarithmic, and 
 ### Algorithm Catalog to Implement
 
 1. **Quadratic Sorts (O(n²))**:
-   - [ ] `internal/sorter/insertion.go`: Insertion Sort (tracks shifting elements).
-   - [ ] `internal/sorter/selection.go`: Selection Sort (highlights minimum candidate).
+   - [x] `internal/sorter/insertion.go`: Insertion Sort (tracks shifting elements).
+   - [x] `internal/sorter/selection.go`: Selection Sort (highlights minimum candidate).
 2. **Efficient Comparison Sorts (O(n log n))**:
-   - [ ] `internal/sorter/quick.go`: Quicksort (highlight pivot indices, show partition bounds).
-   - [ ] `internal/sorter/merge.go`: Merge Sort (uses `overwrite` step type as auxiliary arrays merge back).
-   - [ ] `internal/sorter/heap.go`: Heap Sort (visualize heapify sift-down operations and max-element extractions).
+   - [x] `internal/sorter/quick.go`: Quicksort (highlight pivot indices, show partition bounds).
+   - [x] `internal/sorter/merge.go`: Merge Sort (uses `overwrite` step type as auxiliary arrays merge back).
+   - [x] `internal/sorter/heap.go`: Heap Sort (visualize heapify sift-down operations and max-element extractions).
 3. **Non-Comparison Distribution Sorts (O(n))**:
-   - [ ] `internal/sorter/counting.go`: Counting Sort (computes frequency array, overwrites values).
-   - [ ] `internal/sorter/radix.go`: Radix Sort (LSD digit-by-digit sorting).
+   - [x] `internal/sorter/counting.go`: Counting Sort (computes frequency array, overwrites values).
+   - [x] `internal/sorter/radix.go`: Radix Sort (LSD digit-by-digit sorting).
 
 ### Tasks
-- [ ] Write unit tests for every newly added algorithm in `internal/sorter/*_test.go`.
-- [ ] Populate detailed `AlgorithmMeta` fields for each algorithm (Best, Average, Worst complexity, space, description).
-- [ ] Update frontend UI to display an educational info card with current algorithm specs and big-O notation.
+- [x] Write unit tests for every newly added algorithm in `internal/sorter/*_test.go`.
+- [x] Populate detailed `AlgorithmMeta` fields for each algorithm (Best, Average, Worst complexity, space, description).
+- [x] Update frontend UI to display an educational info card with current algorithm specs and big-O notation.
 
 ### Milestone 4 Check
 All 7 algorithms are listed in the dropdown, each passes unit tests, and each animates correctly in the browser.
@@ -134,13 +134,13 @@ All 7 algorithms are listed in the dropdown, each passes unit tests, and each an
 Add video-style scrubber controls (rewind/scrub) and synthesized audio feedback.
 
 ### Tasks
-- [ ] **State Reconstruction / Bidirectional Scrubbing**:
+- [x] **State Reconstruction / Bidirectional Scrubbing**:
   - Store initial array snapshot before sorting.
   - To jump to step `k`: replay steps `0` through `k` against a fresh copy of the initial array to compute exact array state at step `k`.
   - Connect this to an interactive `<input type="range" min="0" max={totalSteps} />` scrubber bar.
-- [ ] **Step-by-Step Navigation**:
+- [x] **Step-by-Step Navigation**:
   - Add "Step Forward" and "Step Backward" buttons for granular frame-by-frame analysis.
-- [ ] **Web Audio API Engine** (`utils/audio.ts`):
+- [x] **Web Audio API Engine** (`utils/audio.ts`):
   - Initialize an `AudioContext`.
   - Create a frequency mapper: `freq = 120 + (val / maxVal) * (880 - 120)`.
   - On `compare` or `swap` steps, trigger a short oscillator tone (30ms duration, triangle waveform, linear volume decay).
@@ -157,16 +157,16 @@ Drag the scrubber bar back and forth to see the array rewind and fast-forward cl
 Create a unified, single-binary distribution using Go `embed`, polish styling, and prepare repository for Boot.dev submission.
 
 ### Tasks
-- [ ] Embed React build into Go:
+- [x] Embed React build into Go:
   - Add `//go:embed all:frontend/dist` in `cmd/server/main.go`.
   - Use `http.FS` and `http.FileServer` to serve the embedded frontend as the fallback route for the root `/`.
-- [ ] Add Makefile or `scripts/build.sh`:
+- [x] Add Makefile or `scripts/build.sh`:
   - Automate `npm --prefix frontend run build` followed by `go build -o sortpulse ./cmd/server`.
-- [ ] Complete `README.md`:
+- [x] Complete `README.md`:
   - Showcase features, architecture, and complexity table.
   - Include instructions for running in dev mode vs building the single binary.
   - Add screenshots or GIF recordings of the visualizer.
-- [ ] Push to GitHub and submit to Boot.dev!
+- [x] Push to GitHub and submit to Boot.dev!
 
 ---
 
