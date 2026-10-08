@@ -233,27 +233,14 @@ function App() {
   const handleStepForward = () => {
     setIsPlaying(false);
     if (trace && currentStepIndex < trace.steps.length) {
-        // play tone for step if we advance
-        let tempArray = [...trace.initial_array];
-        for (let i = 0; i <= currentStepIndex + 1 && i < trace.steps.length; i++) {
-             const s = trace.steps[i];
-             if (s.type === 'swap') {
-                 const [idx1, idx2] = s.indices;
-                 [tempArray[idx1], tempArray[idx2]] = [tempArray[idx2], tempArray[idx1]];
-             } else if (s.type === 'overwrite' && s.value !== undefined) {
-                 const idx = s.indices[0];
-                 tempArray[idx] = s.value;
-             }
-        }
-        playStepAudio(currentStepIndex + 1, tempArray);
-        setCurrentStepIndex(prev => prev + 1);
+      setCurrentStepIndex(prev => prev + 1);
     }
   };
 
   return (
-    <div className="App" style={{ fontFamily: 'sans-serif' }}>
-      <header style={{ backgroundColor: '#2c3e50', color: 'white', padding: '1rem', textAlign: 'center' }}>
-        <h1 style={{ margin: 0 }}>SortPulse</h1>
+    <div className="App">
+      <header className="App-header">
+        <h1>SortPulse ⚡</h1>
       </header>
 
       <ControlBar
@@ -293,15 +280,13 @@ function App() {
 
       <AlgorithmInfoCard algorithm={algorithms.find(a => a.id === selectedAlgorithm) || null} />
 
-      <div style={{ padding: '1rem', textAlign: 'center' }}>
-        {trace && (
-           <p>
-             Step: {currentStepIndex} / {trace.steps.length} |
-             Comparisons: {trace.comparisons} |
-             Swaps: {trace.swaps}
-           </p>
-        )}
-      </div>
+      {trace && (
+        <div className="metrics-panel">
+          <span className="metric-item">Step: <span className="metric-value">{currentStepIndex} / {trace.steps.length}</span></span>
+          <span className="metric-item">Comparisons: <span className="metric-value">{trace.comparisons}</span></span>
+          <span className="metric-item">Swaps: <span className="metric-value">{trace.swaps}</span></span>
+        </div>
+      )}
     </div>
   );
 }
