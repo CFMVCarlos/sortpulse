@@ -14,6 +14,7 @@ type Step struct {
 	Type        StepType `json:"type"`
 	Indices     []int    `json:"indices"`
 	Description string   `json:"description"`
+	Value       *int     `json:"value,omitempty"`
 }
 
 type AlgorithmMeta struct {

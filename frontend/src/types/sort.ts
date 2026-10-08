@@ -4,6 +4,7 @@ export interface Step {
     type: StepType;
     indices: number[];
     description: string;
+    value?: number;
 }
 
 export interface AlgorithmMeta {

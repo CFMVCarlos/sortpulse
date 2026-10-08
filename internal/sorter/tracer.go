@@ -27,6 +27,25 @@ func (t *Tracer) Swap(i, j int, desc string) {
 	})
 }
 
+func (t *Tracer) Overwrite(i int, val int, desc string) {
+	t.arr[i] = val
+	valCopy := val
+	t.steps = append(t.steps, Step{
+		Type:        StepOverwrite,
+		Indices:     []int{i},
+		Description: desc,
+		Value:       &valCopy,
+	})
+}
+
+func (t *Tracer) Pivot(i int, desc string) {
+	t.steps = append(t.steps, Step{
+		Type:        StepPivot,
+		Indices:     []int{i},
+		Description: desc,
+	})
+}
+
 func (t *Tracer) MarkSorted(i int, desc string) {
 	t.steps = append(t.steps, Step{
 		Type:        StepMarkSorted,

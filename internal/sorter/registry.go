@@ -12,6 +12,13 @@ var (
 
 func init() {
 	Register(&BubbleSorter{})
+	Register(&InsertionSorter{})
+	Register(&SelectionSorter{})
+	Register(&QuickSorter{})
+	Register(&MergeSorter{})
+	Register(&HeapSorter{})
+	Register(&CountingSorter{})
+	Register(&RadixSorter{})
 }
 
 // Register adds a Sorter to the registry.
