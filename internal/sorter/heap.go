@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// HeapSorter implements comparison-based Heap Sort via max-heap sift-down.
 type HeapSorter struct{}
 
 func (s *HeapSorter) Meta() AlgorithmMeta {

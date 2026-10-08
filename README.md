@@ -85,7 +85,7 @@ sortpulse/
 ### Prerequisites
 
 - [Go](https://golang.org/) (version 1.22+)
-- [Node.js](https://nodejs.org/) (version 18+) and `npm`
+- [Node.js](https://nodejs.org/) (version 20+) and `npm`
 
 ### 📦 Single-Binary Production Build
 

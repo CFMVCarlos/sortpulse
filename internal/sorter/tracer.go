@@ -1,5 +1,6 @@
 package sorter
 
+// Tracer manages trace history recording, operation counters, and array state during sorting execution.
 type Tracer struct {
 	arr   []int
 	steps []Step
@@ -7,6 +8,7 @@ type Tracer struct {
 	swaps int
 }
 
+// Compare records a comparison operation between arr[i] and arr[j], increments comparisons, and returns true if arr[i] > arr[j].
 func (t *Tracer) Compare(i, j int, desc string) bool {
 	t.comps++
 	t.steps = append(t.steps, Step{
@@ -17,6 +19,7 @@ func (t *Tracer) Compare(i, j int, desc string) bool {
 	return t.arr[i] > t.arr[j]
 }
 
+// Swap exchanges values at indices i and j, increments the swap counter, and logs a swap step.
 func (t *Tracer) Swap(i, j int, desc string) {
 	t.swaps++
 	t.arr[i], t.arr[j] = t.arr[j], t.arr[i]
@@ -27,6 +30,7 @@ func (t *Tracer) Swap(i, j int, desc string) {
 	})
 }
 
+// Overwrite places val at index i, updating internal array state and logging an overwrite step.
 func (t *Tracer) Overwrite(i int, val int, desc string) {
 	t.arr[i] = val
 	valCopy := val
@@ -38,6 +42,7 @@ func (t *Tracer) Overwrite(i int, val int, desc string) {
 	})
 }
 
+// Pivot logs a pivot selection step for partition-based algorithms like quicksort.
 func (t *Tracer) Pivot(i int, desc string) {
 	t.steps = append(t.steps, Step{
 		Type:        StepPivot,
@@ -46,6 +51,7 @@ func (t *Tracer) Pivot(i int, desc string) {
 	})
 }
 
+// MarkSorted logs that the element at index i has reached its definitive sorted location.
 func (t *Tracer) MarkSorted(i int, desc string) {
 	t.steps = append(t.steps, Step{
 		Type:        StepMarkSorted,

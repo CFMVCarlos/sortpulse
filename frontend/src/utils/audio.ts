@@ -1,3 +1,7 @@
+/**
+ * AudioEngine synthesizes real-time sound frequencies for sorting operations
+ * using the Web Audio API with pitch mapping proportional to element values.
+ */
 export class AudioEngine {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
@@ -9,26 +13,44 @@ export class AudioEngine {
     }
   }
 
+  /**
+   * Initializes the AudioContext lazily on user interaction.
+   */
   public init() {
     if (!this.ctx) {
-      this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      this.ctx = new AudioCtx();
     }
   }
 
+  /**
+   * Returns whether audio output is currently muted.
+   */
   public getMuted(): boolean {
     return this.isMuted;
   }
 
+  /**
+   * Updates mute state and saves preference to localStorage.
+   */
   public setMuted(muted: boolean) {
     this.isMuted = muted;
     localStorage.setItem('sortpulse_mute', muted.toString());
   }
 
+  /**
+   * Toggles the current mute state and returns the new value.
+   */
   public toggleMute(): boolean {
     this.setMuted(!this.isMuted);
     return this.isMuted;
   }
 
+  /**
+   * Synthesizes a brief triangle-wave pitch mapped between 120Hz and 880Hz.
+   * @param val Current element value being sorted.
+   * @param maxVal Maximum element value in the array.
+   */
   public playTone(val: number, maxVal: number) {
     if (this.isMuted) return;
     this.init();
@@ -50,7 +72,7 @@ export class AudioEngine {
     gainNode.connect(this.ctx.destination);
 
     // Linear volume decay
-    gainNode.gain.setValueAtTime(0.1, this.ctx.currentTime); // keep volume low to avoid harshness
+    gainNode.gain.setValueAtTime(0.1, this.ctx.currentTime);
     gainNode.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.03);
 
     osc.start(this.ctx.currentTime);

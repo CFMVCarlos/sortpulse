@@ -1,5 +1,11 @@
+/**
+ * Operation classification matching Go backend StepType constants.
+ */
 export type StepType = 'compare' | 'swap' | 'overwrite' | 'pivot' | 'mark_sorted';
 
+/**
+ * An individual trace event recording the action, involved indices, and pedagogical explanation.
+ */
 export interface Step {
     type: StepType;
     indices: number[];
@@ -7,6 +13,9 @@ export interface Step {
     value?: number;
 }
 
+/**
+ * Algorithmic metadata, asymptotic complexity, and categorization.
+ */
 export interface AlgorithmMeta {
     id: string;
     name: string;
@@ -19,6 +28,9 @@ export interface AlgorithmMeta {
     description: string;
 }
 
+/**
+ * Full execution trace emitted by a sorter run.
+ */
 export interface Trace {
     algorithm: string;
     initial_array: number[];

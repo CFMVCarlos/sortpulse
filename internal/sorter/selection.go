@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// SelectionSorter implements comparison-based Selection Sort.
 type SelectionSorter struct{}
 
 func (s *SelectionSorter) Meta() AlgorithmMeta {

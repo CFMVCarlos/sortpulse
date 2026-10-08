@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// InsertionSorter implements comparison-based Insertion Sort.
 type InsertionSorter struct{}
 
 func (s *InsertionSorter) Meta() AlgorithmMeta {

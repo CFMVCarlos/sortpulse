@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// BubbleSorter implements comparison-based Bubble Sort.
 type BubbleSorter struct{}
 
 func (s *BubbleSorter) Meta() AlgorithmMeta {

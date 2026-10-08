@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// MergeSorter implements divide-and-conquer Merge Sort with overwrite tracing.
 type MergeSorter struct{}
 
 func (s *MergeSorter) Meta() AlgorithmMeta {

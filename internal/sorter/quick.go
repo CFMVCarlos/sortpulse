@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// QuickSorter implements divide-and-conquer Quicksort with pivot tracing.
 type QuickSorter struct{}
 
 func (s *QuickSorter) Meta() AlgorithmMeta {
