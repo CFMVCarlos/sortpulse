@@ -25,6 +25,7 @@ function App() {
 
   // Audio state
   const [isMuted, setIsMuted] = useState<boolean>(audioEngine.getMuted());
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Ref for timer to clear it
   const timerRef = useRef<number | null>(null);
@@ -32,6 +33,7 @@ function App() {
 
   const loadAlgorithms = async () => {
     try {
+      setErrorMessage(null);
       const algos = await fetchAlgorithms();
       setAlgorithms(algos);
       if (algos.length > 0) {
@@ -39,6 +41,7 @@ function App() {
       }
     } catch (error) {
       console.error("Failed to load algorithms:", error);
+      setErrorMessage("Could not connect to the backend server. Ensure the server is running on :8080.");
     }
   };
 
@@ -91,12 +94,14 @@ function App() {
     if (!selectedAlgorithm) return;
 
     try {
+      setErrorMessage(null);
       const newTrace = await fetchSortTrace(selectedAlgorithm, currentArray);
       setTrace(newTrace);
       setCurrentStepIndex(0);
       setIsPlaying(true);
     } catch (error) {
       console.error("Failed to fetch sort trace:", error);
+      setErrorMessage("Failed to calculate sorting steps. Please try again.");
       setIsPlaying(false);
     }
   };
@@ -242,6 +247,20 @@ function App() {
       <header className="App-header">
         <h1>SortPulse ⚡</h1>
       </header>
+
+      {errorMessage && (
+        <div role="alert" style={{
+          backgroundColor: '#fee2e2',
+          borderBottom: '1px solid #f87171',
+          color: '#991b1b',
+          padding: '0.75rem 1rem',
+          textAlign: 'center',
+          fontWeight: 500,
+          fontSize: '0.9rem'
+        }}>
+          {errorMessage}
+        </div>
+      )}
 
       <ControlBar
         algorithms={algorithms}

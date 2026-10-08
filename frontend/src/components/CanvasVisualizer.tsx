@@ -1,29 +1,43 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export type BarState = 'default' | 'comparing' | 'swapping' | 'sorted' | 'pivot';
 
 interface CanvasVisualizerProps {
     array: number[];
     barStates: BarState[];
-    width?: number;
     height?: number;
 }
 
 const STATE_COLORS: Record<BarState, string> = {
-    default: '#3498db',    // blue
-    comparing: '#f1c40f',  // yellow
-    swapping: '#e74c3c',   // red
-    sorted: '#2ecc71',     // green
-    pivot: '#9b59b6',      // purple
+    default: '#3b82f6',    // vibrant blue
+    comparing: '#f59e0b',  // amber yellow
+    swapping: '#ef4444',   // rose red
+    sorted: '#10b981',     // emerald green
+    pivot: '#8b5cf6',      // violet purple
 };
 
 export const CanvasVisualizer: React.FC<CanvasVisualizerProps> = ({
     array,
     barStates,
-    width = 800,
     height = 400,
 }) => {
+    const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [canvasWidth, setCanvasWidth] = useState<number>(800);
+
+    // Responsive container width tracking
+    useEffect(() => {
+        const updateWidth = () => {
+            if (containerRef.current) {
+                const width = Math.min(850, containerRef.current.clientWidth - 32);
+                setCanvasWidth(Math.max(300, width));
+            }
+        };
+
+        updateWidth();
+        window.addEventListener('resize', updateWidth);
+        return () => window.removeEventListener('resize', updateWidth);
+    }, []);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -36,59 +50,58 @@ export const CanvasVisualizer: React.FC<CanvasVisualizerProps> = ({
 
         const render = () => {
             // Clear canvas
-            ctx.clearRect(0, 0, width, height);
+            ctx.clearRect(0, 0, canvasWidth, height);
 
             if (array.length === 0) return;
 
             const n = array.length;
-            const maxVal = Math.max(...array, 1); // Avoid division by zero
+            const maxVal = Math.max(...array, 1);
 
-            // Calculate dimensions
-            // Let's use 80% of width for bars, 20% for spacing total
-            const spacing = (width * 0.2) / (n + 1);
-            const barWidth = (width * 0.8) / n;
+            const spacing = (canvasWidth * 0.15) / (n + 1);
+            const barWidth = (canvasWidth * 0.85) / n;
 
             for (let i = 0; i < n; i++) {
                 const val = array[i];
                 const state = barStates[i] || 'default';
                 const color = STATE_COLORS[state];
 
-                const barHeight = (val / maxVal) * (height * 0.9); // Leave 10% padding at top
+                const barHeight = (val / maxVal) * (height * 0.88);
                 const x = spacing + i * (barWidth + spacing);
                 const y = height - barHeight;
 
                 // Draw bar
                 ctx.fillStyle = color;
-                ctx.fillRect(x, y, barWidth, barHeight);
+                ctx.beginPath();
+                // Draw rounded top corners if bar is wide enough
+                if (barWidth > 6) {
+                    const radius = Math.min(4, barWidth / 2);
+                    ctx.roundRect(x, y, barWidth, barHeight, [radius, radius, 0, 0]);
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(x, y, barWidth, barHeight);
+                }
 
-                // Optional: draw border for clarity if bars are wide enough
-                if (barWidth > 3) {
-                    ctx.strokeStyle = '#2c3e50';
+                // Add subtle stroke for definition on wider bars
+                if (barWidth > 4) {
+                    ctx.strokeStyle = 'rgba(15, 23, 42, 0.15)';
                     ctx.lineWidth = 1;
                     ctx.strokeRect(x, y, barWidth, barHeight);
                 }
             }
         };
 
-        // Use requestAnimationFrame for smooth rendering
         animationFrameId = requestAnimationFrame(render);
-
-        return () => {
-            cancelAnimationFrame(animationFrameId);
-        };
-    }, [array, barStates, width, height]);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [array, barStates, canvasWidth, height]);
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
+        <div ref={containerRef} className="canvas-wrapper" role="region" aria-label="Sorting Bar Visualizer">
             <canvas
                 ref={canvasRef}
-                width={width}
+                width={canvasWidth}
                 height={height}
-                style={{
-                    backgroundColor: '#ecf0f1',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                }}
+                className="sort-canvas"
+                aria-label={`Visual representation of ${array.length} numbers undergoing sort`}
             />
         </div>
     );

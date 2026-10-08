@@ -41,14 +41,16 @@ export const ControlBar: React.FC<ControlBarProps> = ({
     onToggleMute,
 }) => {
     return (
-        <div className="control-bar" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', backgroundColor: '#f0f0f0' }}>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <section aria-label="Sorting Controls" className="control-bar">
+            <div className="control-bar-row">
                 <div className="control-group">
-                    <label htmlFor="algorithm-select">Algorithm: </label>
+                    <label htmlFor="algorithm-select">Algorithm:</label>
                     <select
                         id="algorithm-select"
+                        className="control-select"
                         value={selectedAlgorithm}
                         onChange={(e) => onAlgorithmChange(e.target.value)}
+                        aria-label="Select sorting algorithm"
                     >
                         <option value="" disabled>Select Algorithm</option>
                         {algorithms.map((algo) => (
@@ -59,8 +61,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                     </select>
                 </div>
 
-                <div className="control-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <label htmlFor="array-size">Size ({arraySize}): </label>
+                <div className="control-group">
+                    <label htmlFor="array-size">Size ({arraySize}):</label>
                     <input
                         id="array-size"
                         type="range"
@@ -69,23 +71,57 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                         value={arraySize}
                         onChange={(e) => onArraySizeChange(Number(e.target.value))}
                         disabled={isPlaying}
+                        aria-label="Array size"
+                        aria-valuemin={10}
+                        aria-valuemax={150}
+                        aria-valuenow={arraySize}
                     />
                 </div>
 
-                <div className="control-group" style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => onGenerateArray('random')} disabled={isPlaying}>Random</button>
-                    <button onClick={() => onGenerateArray('reverse')} disabled={isPlaying}>Reverse</button>
-                    <button onClick={() => onGenerateArray('nearly_sorted')} disabled={isPlaying}>Nearly Sorted</button>
-                </div>
-
-                <div className="control-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <button onClick={onTogglePlay} style={{ minWidth: '80px', fontWeight: 'bold' }}>
-                        {isPlaying ? 'Pause' : 'Play / Sort'}
+                <div className="control-group" role="group" aria-label="Array generators">
+                    <button
+                        type="button"
+                        className="btn"
+                        onClick={() => onGenerateArray('random')}
+                        disabled={isPlaying}
+                        aria-label="Generate random array"
+                    >
+                        Random
+                    </button>
+                    <button
+                        type="button"
+                        className="btn"
+                        onClick={() => onGenerateArray('reverse')}
+                        disabled={isPlaying}
+                        aria-label="Generate reverse sorted array"
+                    >
+                        Reverse
+                    </button>
+                    <button
+                        type="button"
+                        className="btn"
+                        onClick={() => onGenerateArray('nearly_sorted')}
+                        disabled={isPlaying}
+                        aria-label="Generate nearly sorted array"
+                    >
+                        Nearly Sorted
                     </button>
                 </div>
 
-                <div className="control-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <label htmlFor="speed">Speed ({speed}ms): </label>
+                <div className="control-group">
+                    <button
+                        type="button"
+                        className={`btn btn-primary`}
+                        onClick={onTogglePlay}
+                        aria-label={isPlaying ? 'Pause animation' : 'Start sorting'}
+                        style={{ minWidth: '95px' }}
+                    >
+                        {isPlaying ? '⏸ Pause' : '▶ Play'}
+                    </button>
+                </div>
+
+                <div className="control-group">
+                    <label htmlFor="speed">Speed ({speed}ms):</label>
                     <input
                         id="speed"
                         type="range"
@@ -93,34 +129,63 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                         max="200"
                         value={speed}
                         onChange={(e) => onSpeedChange(Number(e.target.value))}
-                        /* Reverse the slider visually so right is faster (lower delay) */
                         style={{ direction: 'rtl' }}
+                        aria-label="Animation step delay in milliseconds"
+                        aria-valuemin={1}
+                        aria-valuemax={200}
+                        aria-valuenow={speed}
                     />
                 </div>
 
-                <div className="control-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <button onClick={onToggleMute} style={{ minWidth: '80px' }}>
-                        {isMuted ? 'Unmute' : 'Mute'}
+                <div className="control-group">
+                    <button
+                        type="button"
+                        className="btn"
+                        onClick={onToggleMute}
+                        aria-label={isMuted ? 'Unmute audio synthesized feedback' : 'Mute audio synthesized feedback'}
+                        style={{ minWidth: '85px' }}
+                    >
+                        {isMuted ? '🔇 Unmute' : '🔊 Mute'}
                     </button>
                 </div>
             </div>
 
             {/* Timeline Scrubber */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
-                <button onClick={onStepBackward} disabled={isPlaying || currentStepIndex <= 0}>Step Back</button>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="scrubber-container" role="region" aria-label="Timeline navigation">
+                <button
+                    type="button"
+                    className="btn"
+                    onClick={onStepBackward}
+                    disabled={isPlaying || currentStepIndex <= 0}
+                    aria-label="Step backward by one frame"
+                >
+                    ⏮ Step Back
+                </button>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
                     <input
                         type="range"
+                        className="scrubber-slider"
                         min="0"
                         max={totalSteps > 0 ? totalSteps : 0}
                         value={currentStepIndex}
                         onChange={(e) => onScrub(Number(e.target.value))}
-                        style={{ width: '100%' }}
                         disabled={totalSteps === 0}
+                        aria-label="Timeline step scrubber"
+                        aria-valuemin={0}
+                        aria-valuemax={totalSteps}
+                        aria-valuenow={currentStepIndex}
                     />
                 </div>
-                <button onClick={onStepForward} disabled={isPlaying || currentStepIndex >= totalSteps || totalSteps === 0}>Step Fwd</button>
+                <button
+                    type="button"
+                    className="btn"
+                    onClick={onStepForward}
+                    disabled={isPlaying || currentStepIndex >= totalSteps || totalSteps === 0}
+                    aria-label="Step forward by one frame"
+                >
+                    Step Fwd ⏭
+                </button>
             </div>
-        </div>
+        </section>
     );
 };

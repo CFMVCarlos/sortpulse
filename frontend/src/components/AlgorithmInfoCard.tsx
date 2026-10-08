@@ -9,34 +9,43 @@ export const AlgorithmInfoCard: React.FC<AlgorithmInfoCardProps> = ({ algorithm 
     if (!algorithm) return null;
 
     return (
-        <div style={{
-            backgroundColor: '#fff',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            padding: '1.5rem',
-            margin: '1rem auto',
-            maxWidth: '800px',
-            textAlign: 'left',
-            fontFamily: 'sans-serif'
-        }}>
-            <h2 style={{ marginTop: 0, color: '#2c3e50' }}>{algorithm.name}</h2>
-            <p style={{ color: '#7f8c8d' }}><strong>Category:</strong> {algorithm.category} | <strong>Stable:</strong> {algorithm.stable ? 'Yes' : 'No'}</p>
-            <p>{algorithm.description}</p>
+        <article className="algo-card" aria-labelledby="algo-title">
+            <header className="algo-card-header">
+                <h2 id="algo-title" className="algo-card-title">{algorithm.name}</h2>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <span className="badge" style={{ backgroundColor: '#e0f2fe', color: '#0369a1' }}>
+                        {algorithm.category}
+                    </span>
+                    <span className={`badge ${algorithm.stable ? 'badge-stable' : 'badge-unstable'}`}>
+                        {algorithm.stable ? 'Stable' : 'Unstable'}
+                    </span>
+                </div>
+            </header>
 
-            <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem', backgroundColor: '#ecf0f1', padding: '1rem', borderRadius: '4px' }}>
+            <p style={{ margin: '0.5rem 0', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                {algorithm.description}
+            </p>
+
+            <div className="algo-complexities" aria-label="Algorithmic Complexities">
                 <div>
-                    <strong>Time Complexity</strong>
-                    <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.2rem', color: '#34495e' }}>
-                        <li>Best: {algorithm.best_time}</li>
-                        <li>Average: {algorithm.average_time}</li>
-                        <li>Worst: {algorithm.worst_time}</li>
+                    <strong style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                        Time Complexity
+                    </strong>
+                    <ul style={{ margin: '0.4rem 0 0', paddingLeft: '1.25rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                        <li>Best: <code>{algorithm.best_time}</code></li>
+                        <li>Average: <code>{algorithm.average_time}</code></li>
+                        <li>Worst: <code>{algorithm.worst_time}</code></li>
                     </ul>
                 </div>
                 <div>
-                    <strong>Space Complexity</strong>
-                    <p style={{ margin: '0.5rem 0 0 0', color: '#34495e' }}>{algorithm.space_complexity}</p>
+                    <strong style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                        Space Complexity
+                    </strong>
+                    <p style={{ margin: '0.4rem 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                        Auxiliary Space: <code>{algorithm.space_complexity}</code>
+                    </p>
                 </div>
             </div>
-        </div>
+        </article>
     );
 };
