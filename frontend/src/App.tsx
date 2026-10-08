@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import type { AlgorithmMeta, Trace } from './types/sort';
 import { fetchAlgorithms, fetchSortTrace } from './api/client';
@@ -6,6 +6,7 @@ import { ControlBar } from './components/ControlBar';
 import { CanvasVisualizer } from './components/CanvasVisualizer';
 import { AlgorithmInfoCard } from './components/AlgorithmInfoCard';
 import type { BarState } from './components/CanvasVisualizer';
+import { audioEngine } from './utils/audio';
 
 function App() {
   const [algorithms, setAlgorithms] = useState<AlgorithmMeta[]>([]);
@@ -22,8 +23,12 @@ function App() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speed, setSpeed] = useState<number>(50); // delay in ms
 
+  // Audio state
+  const [isMuted, setIsMuted] = useState<boolean>(audioEngine.getMuted());
+
   // Ref for timer to clear it
   const timerRef = useRef<number | null>(null);
+  const maxValRef = useRef<number>(100);
 
   const loadAlgorithms = async () => {
     try {
@@ -59,6 +64,8 @@ function App() {
         [newArr[idx1], newArr[idx2]] = [newArr[idx2], newArr[idx1]];
       }
     }
+
+    maxValRef.current = Math.max(...newArr);
 
     setCurrentArray(newArr);
     setBarStates(new Array(size).fill('default'));
@@ -107,24 +114,30 @@ function App() {
     }
   };
 
+  const toggleMute = () => {
+    setIsMuted(audioEngine.toggleMute());
+  };
+
+  const playStepAudio = useCallback((stepIndex: number, tempArray: number[]) => {
+      if (!trace || stepIndex < 0 || stepIndex >= trace.steps.length) return;
+      const s = trace.steps[stepIndex];
+      if (s.type === 'compare' || s.type === 'swap') {
+          const val = tempArray[s.indices[0]]; // play tone for first index involved
+          audioEngine.playTone(val, maxValRef.current);
+      } else if (s.type === 'overwrite' && s.value !== undefined) {
+          audioEngine.playTone(s.value, maxValRef.current);
+      }
+  }, [trace]);
+
   // State machine for step execution
   useEffect(() => {
-    if (!isPlaying || !trace) return;
+    if (!trace) return;
 
-    if (currentStepIndex >= trace.steps.length) {
+    if (currentStepIndex >= trace.steps.length && isPlaying) {
       setIsPlaying(false);
-      // Mark all as sorted at the end
       setBarStates(new Array(currentArray.length).fill('sorted'));
       return;
     }
-
-    // Keep previously sorted elements sorted (if we had a way to track them reliably here without full state rebuild)
-    // A simple approach is to rely on step descriptions or just highlight the active ones.
-    // For a more robust approach, we need to rebuild the full array state from step 0 to currentStepIndex.
-    // For now, we will do a simple incremental update.
-
-    // If we want accurate state rebuilding, we should rebuild `nextArray` from `trace.initial_array`
-    // applying all steps up to `currentStepIndex`.
 
     const rebuildState = () => {
       let tempArray = [...trace.initial_array];
@@ -133,7 +146,9 @@ function App() {
       // Keep track of elements explicitly marked sorted
       const sortedIndices = new Set<number>();
 
+      // Rebuild up to current step
       for (let i = 0; i <= currentStepIndex; i++) {
+        if (i >= trace.steps.length) break;
         const s = trace.steps[i];
 
         // Reset temporary states for this step
@@ -189,17 +204,51 @@ function App() {
     setCurrentArray(tempArray);
     setBarStates(tempStates);
 
-    timerRef.current = window.setTimeout(() => {
-      setCurrentStepIndex(prev => prev + 1);
-    }, speed);
+    if (isPlaying) {
+       playStepAudio(currentStepIndex, tempArray);
+       timerRef.current = window.setTimeout(() => {
+         setCurrentStepIndex(prev => prev + 1);
+       }, speed);
+    }
 
     return () => {
       if (timerRef.current !== null) {
         clearTimeout(timerRef.current);
       }
     };
-  }, [isPlaying, currentStepIndex, trace, speed, currentArray.length]);
+  }, [isPlaying, currentStepIndex, trace, speed, currentArray.length, playStepAudio]);
 
+  const handleScrub = (step: number) => {
+    setIsPlaying(false);
+    if (trace) {
+      setCurrentStepIndex(Math.min(Math.max(step, 0), trace.steps.length));
+    }
+  };
+
+  const handleStepBackward = () => {
+    setIsPlaying(false);
+    setCurrentStepIndex(prev => Math.max(prev - 1, 0));
+  };
+
+  const handleStepForward = () => {
+    setIsPlaying(false);
+    if (trace && currentStepIndex < trace.steps.length) {
+        // play tone for step if we advance
+        let tempArray = [...trace.initial_array];
+        for (let i = 0; i <= currentStepIndex + 1 && i < trace.steps.length; i++) {
+             const s = trace.steps[i];
+             if (s.type === 'swap') {
+                 const [idx1, idx2] = s.indices;
+                 [tempArray[idx1], tempArray[idx2]] = [tempArray[idx2], tempArray[idx1]];
+             } else if (s.type === 'overwrite' && s.value !== undefined) {
+                 const idx = s.indices[0];
+                 tempArray[idx] = s.value;
+             }
+        }
+        playStepAudio(currentStepIndex + 1, tempArray);
+        setCurrentStepIndex(prev => prev + 1);
+    }
+  };
 
   return (
     <div className="App" style={{ fontFamily: 'sans-serif' }}>
@@ -228,6 +277,13 @@ function App() {
         onTogglePlay={togglePlay}
         speed={speed}
         onSpeedChange={setSpeed}
+        currentStepIndex={currentStepIndex}
+        totalSteps={trace ? trace.steps.length : 0}
+        onScrub={handleScrub}
+        onStepBackward={handleStepBackward}
+        onStepForward={handleStepForward}
+        isMuted={isMuted}
+        onToggleMute={toggleMute}
       />
 
       <CanvasVisualizer
