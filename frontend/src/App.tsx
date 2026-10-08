@@ -4,6 +4,13 @@ import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import './App.css'
 
+/**
+ * App is the root component of the SortPulse application.
+ * It renders the main layout including the canvas visualizer, playback controls,
+ * algorithm selector, and metrics panel.
+ * 
+ * @returns The rendered React element.
+ */
 function App() {
   const [count, setCount] = useState(0)
 
