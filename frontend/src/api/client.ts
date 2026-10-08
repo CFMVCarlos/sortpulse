@@ -1,6 +1,6 @@
 import type { AlgorithmMeta, Trace } from '../types/sort';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = import.meta.env.DEV ? 'http://localhost:8080/api' : '/api';
 
 export async function fetchAlgorithms(): Promise<AlgorithmMeta[]> {
     const response = await fetch(`${API_BASE}/algorithms`);

@@ -73,7 +73,25 @@ sortpulse/
 - [Go](https://golang.org/) (version 1.22+)
 - [Node.js](https://nodejs.org/) (version 18+) and `npm`
 
-### Local Development Setup
+### 📦 Single-Binary Production Build
+
+SortPulse can be compiled into a single executable where the React frontend is embedded directly into the Go binary.
+
+Using `make` (recommended):
+```bash
+make build
+./sortpulse
+```
+
+Or using the bash script directly:
+```bash
+./scripts/build.sh
+./sortpulse
+```
+
+The application will be served fully on `http://localhost:8080`.
+
+### 🛠️ Local Development Setup
 
 To run both backend and frontend with live reloading:
 
@@ -89,21 +107,22 @@ To run both backend and frontend with live reloading:
    npm install
    npm run dev
    ```
-   Open `http://localhost:5173` in your browser.
+   Open `http://localhost:5173` in your browser. The frontend will dynamically proxy API calls to the backend on `localhost:8080`.
 
 ---
 
 ## 🧪 Code Quality & Verification Commands
 
-Run backend algorithm unit tests:
+Using the Makefile:
 ```bash
-go test -v ./internal/sorter/...
+make test  # Runs all Go unit tests
+make lint  # Runs oxlint on the React frontend
 ```
 
-Run frontend linting:
+Or manually:
 ```bash
-cd frontend
-npm run lint
+go test -v ./...
+npm --prefix frontend run lint
 ```
 
 ---
