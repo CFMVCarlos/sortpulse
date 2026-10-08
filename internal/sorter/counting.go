@@ -33,23 +33,28 @@ func (s *CountingSorter) Sort(input []int) Trace {
 	}
 
 	if len(arr) > 0 {
-		max := arr[0]
+		min, max := arr[0], arr[0]
 		for i := 1; i < len(arr); i++ {
+			if arr[i] < min {
+				min = arr[i]
+			}
 			if arr[i] > max {
 				max = arr[i]
 			}
 		}
 
-		count := make([]int, max+1)
+		rangeSize := max - min + 1
+		count := make([]int, rangeSize)
 		for i := 0; i < len(arr); i++ {
-			count[arr[i]]++
+			count[arr[i]-min]++
 		}
 
 		idx := 0
-		for i := 0; i <= max; i++ {
+		for i := 0; i < rangeSize; i++ {
 			for count[i] > 0 {
-				descOverwrite := fmt.Sprintf("Overwriting arr[%d] with %d", idx, i)
-				tracer.Overwrite(idx, i, descOverwrite)
+				val := i + min
+				descOverwrite := fmt.Sprintf("Overwriting arr[%d] with %d", idx, val)
+				tracer.Overwrite(idx, val, descOverwrite)
 				tracer.MarkSorted(idx, fmt.Sprintf("arr[%d] is placed in sorted position", idx))
 				idx++
 				count[i]--

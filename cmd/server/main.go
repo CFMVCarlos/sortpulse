@@ -66,7 +66,16 @@ func main() {
 	addr := fmt.Sprintf(":%d", *port)
 	log.Printf("Starting server on %s", addr)
 
-	if err := http.ListenAndServe(addr, handler); err != nil {
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           handler,
+		ReadHeaderTimeout: 3 * time.Second,
+		ReadTimeout:       5 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }

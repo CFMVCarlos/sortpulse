@@ -33,15 +33,37 @@ func (s *RadixSorter) Sort(input []int) Trace {
 	}
 
 	if len(arr) > 0 {
-		max := arr[0]
-		for i := 1; i < len(arr); i++ {
-			if arr[i] > max {
-				max = arr[i]
+		min := arr[0]
+		for _, v := range arr {
+			if v < min {
+				min = v
+			}
+		}
+
+		offset := 0
+		if min < 0 {
+			offset = -min
+			for i := range tracer.arr {
+				tracer.arr[i] += offset
+			}
+		}
+
+		max := tracer.arr[0]
+		for i := 1; i < len(tracer.arr); i++ {
+			if tracer.arr[i] > max {
+				max = tracer.arr[i]
 			}
 		}
 
 		for exp := 1; max/exp > 0; exp *= 10 {
 			countSort(tracer, exp)
+		}
+
+		if offset > 0 {
+			for i := range tracer.arr {
+				actualVal := tracer.arr[i] - offset
+				tracer.Overwrite(i, actualVal, fmt.Sprintf("Restoring arr[%d] to original offset value %d", i, actualVal))
+			}
 		}
 
 		for i := 0; i < len(arr); i++ {

@@ -32,9 +32,12 @@ func HandleSort(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Limit request payload to 1MB to guard against DoS/OOM
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+
 	var req SortRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		http.Error(w, "Invalid JSON payload or body too large", http.StatusBadRequest)
 		return
 	}
 
@@ -46,6 +49,13 @@ func HandleSort(w http.ResponseWriter, r *http.Request) {
 	if len(req.Array) > 500 {
 		http.Error(w, "Array is too large (max 500 items)", http.StatusBadRequest)
 		return
+	}
+
+	for _, v := range req.Array {
+		if v < -100000 || v > 100000 {
+			http.Error(w, "Array values must be within [-100,000, 100,000]", http.StatusBadRequest)
+			return
+		}
 	}
 
 	s, ok := sorter.Get(req.Algorithm)

@@ -2,11 +2,14 @@ package api
 
 import "net/http"
 
-// WithCORS is a simple middleware that adds CORS headers to responses.
+// WithCORS is a middleware that adds CORS and baseline security headers to responses.
 func WithCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Allow any origin for development, ideally this would be configurable.
-		// For now we allow everything or restrict to localhost:5173 as per the plan.
+		// Baseline HTTP security headers
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+
 		origin := r.Header.Get("Origin")
 		if origin != "" {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
