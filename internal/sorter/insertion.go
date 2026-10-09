@@ -34,25 +34,24 @@ func (s *InsertionSorter) Sort(input []int) Trace {
 	}
 
 	n := len(arr)
-	if n > 0 {
-		tracer.MarkSorted(0, "First element is sorted by definition")
-	}
-
 	for i := 1; i < n; i++ {
+		tracer.Pivot(i, fmt.Sprintf("Selected arr[%d] (%d) to insert into sorted prefix", i, tracer.arr[i]))
 		j := i
 		for j > 0 {
-			desc := fmt.Sprintf("Comparing arr[%d] (%d) with arr[%d] (%d)", j-1, arr[j-1], j, arr[j])
+			desc := fmt.Sprintf("Comparing arr[%d] (%d) with arr[%d] (%d)", j-1, tracer.arr[j-1], j, tracer.arr[j])
 			if tracer.Compare(j-1, j, desc) {
-				descSwap := fmt.Sprintf("Swapping arr[%d] (%d) and arr[%d] (%d)", j-1, arr[j-1], j, arr[j])
+				descSwap := fmt.Sprintf("Swapping arr[%d] (%d) and arr[%d] (%d)", j-1, tracer.arr[j-1], j, tracer.arr[j])
 				tracer.Swap(j-1, j, descSwap)
 				j--
 			} else {
 				break
 			}
 		}
-		for k := 0; k <= i; k++ {
-			tracer.MarkSorted(k, fmt.Sprintf("Marked arr[%d] as sorted", k))
-		}
+	}
+
+	// Once the entire array is sorted, mark all elements in a clean final sweep
+	for i := 0; i < n; i++ {
+		tracer.MarkSorted(i, fmt.Sprintf("arr[%d] is sorted", i))
 	}
 
 	executionTime := time.Since(startTime).Microseconds()
