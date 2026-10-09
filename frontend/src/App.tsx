@@ -245,7 +245,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>SortPulse ⚡</h1>
+        <h1>SortPulse</h1>
       </header>
 
       {errorMessage && (
@@ -292,20 +292,24 @@ function App() {
         onToggleMute={toggleMute}
       />
 
-      <CanvasVisualizer
-        array={currentArray}
-        barStates={barStates}
-      />
+      <main className="app-main">
+        <section className="visualizer-section">
+          <CanvasVisualizer
+            array={currentArray}
+            barStates={barStates}
+            height={360}
+          />
+          <div className="metrics-panel" aria-label="Sorting Metrics">
+            <span className="metric-item">Step: <span className="metric-value">{trace ? `${currentStepIndex} / ${trace.steps.length}` : '0 / 0'}</span></span>
+            <span className="metric-item">Comparisons: <span className="metric-value">{trace ? trace.comparisons : 0}</span></span>
+            <span className="metric-item">Swaps: <span className="metric-value">{trace ? trace.swaps : 0}</span></span>
+          </div>
+        </section>
 
-      <AlgorithmInfoCard algorithm={algorithms.find(a => a.id === selectedAlgorithm) || null} />
-
-      {trace && (
-        <div className="metrics-panel">
-          <span className="metric-item">Step: <span className="metric-value">{currentStepIndex} / {trace.steps.length}</span></span>
-          <span className="metric-item">Comparisons: <span className="metric-value">{trace.comparisons}</span></span>
-          <span className="metric-item">Swaps: <span className="metric-value">{trace.swaps}</span></span>
-        </div>
-      )}
+        <aside className="sidebar-section">
+          <AlgorithmInfoCard algorithm={algorithms.find(a => a.id === selectedAlgorithm) || null} />
+        </aside>
+      </main>
     </div>
   );
 }

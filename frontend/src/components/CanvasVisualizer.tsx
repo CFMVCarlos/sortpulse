@@ -19,24 +19,40 @@ const STATE_COLORS: Record<BarState, string> = {
 export const CanvasVisualizer: React.FC<CanvasVisualizerProps> = ({
     array,
     barStates,
-    height = 400,
+    height = 360,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [canvasWidth, setCanvasWidth] = useState<number>(800);
 
-    // Responsive container width tracking
+    // Responsive container width tracking via ResizeObserver
     useEffect(() => {
         const updateWidth = () => {
             if (containerRef.current) {
-                const width = Math.min(850, containerRef.current.clientWidth - 32);
-                setCanvasWidth(Math.max(300, width));
+                const width = containerRef.current.clientWidth;
+                if (width > 0) {
+                    setCanvasWidth(width);
+                }
             }
         };
 
         updateWidth();
         window.addEventListener('resize', updateWidth);
-        return () => window.removeEventListener('resize', updateWidth);
+
+        let resizeObserver: ResizeObserver | null = null;
+        if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
+            resizeObserver = new ResizeObserver(() => {
+                updateWidth();
+            });
+            resizeObserver.observe(containerRef.current);
+        }
+
+        return () => {
+            window.removeEventListener('resize', updateWidth);
+            if (resizeObserver) {
+                resizeObserver.disconnect();
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -100,6 +116,7 @@ export const CanvasVisualizer: React.FC<CanvasVisualizerProps> = ({
                 ref={canvasRef}
                 width={canvasWidth}
                 height={height}
+                style={{ width: '100%', height: `${height}px` }}
                 className="sort-canvas"
                 aria-label={`Visual representation of ${array.length} numbers undergoing sort`}
             />
