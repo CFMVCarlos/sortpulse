@@ -23,6 +23,8 @@ function App() {
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speedLevel, setSpeedLevel] = useState<number>(3); // Level 3 corresponds to 8x speed
+  const [currentComparisons, setCurrentComparisons] = useState<number>(0);
+  const [currentSwaps, setCurrentSwaps] = useState<number>(0);
 
   // Audio state
   const [isMuted, setIsMuted] = useState<boolean>(audioEngine.getMuted());
@@ -36,11 +38,15 @@ function App() {
     stepIndex: number;
     array: number[];
     sortedIndices: Set<number>;
+    comparisons: number;
+    swaps: number;
   }>({
     trace: null,
     stepIndex: -1,
     array: [],
     sortedIndices: new Set<number>(),
+    comparisons: 0,
+    swaps: 0,
   });
 
   const loadAlgorithms = async () => {
@@ -86,12 +92,16 @@ function App() {
     setBarStates(new Array(size).fill('default'));
     setTrace(null);
     setCurrentStepIndex(0);
+    setCurrentComparisons(0);
+    setCurrentSwaps(0);
     setIsPlaying(false);
     cachedStateRef.current = {
       trace: null,
       stepIndex: -1,
       array: [],
       sortedIndices: new Set<number>(),
+      comparisons: 0,
+      swaps: 0,
     };
   };
 
@@ -116,11 +126,15 @@ function App() {
       const newTrace = await fetchSortTrace(selectedAlgorithm, currentArray);
       setTrace(newTrace);
       setCurrentStepIndex(0);
+      setCurrentComparisons(0);
+      setCurrentSwaps(0);
       cachedStateRef.current = {
         trace: null,
         stepIndex: -1,
         array: [],
         sortedIndices: new Set<number>(),
+        comparisons: 0,
+        swaps: 0,
       };
       setIsPlaying(true);
     } catch (error) {
@@ -174,6 +188,8 @@ function App() {
     const rebuildState = () => {
       let tempArray: number[];
       const sortedIndices = new Set<number>();
+      let comparisons = 0;
+      let swaps = 0;
       let startStep = 0;
 
       const cache = cachedStateRef.current;
@@ -184,6 +200,8 @@ function App() {
       ) {
         tempArray = [...cache.array];
         cache.sortedIndices.forEach((idx) => sortedIndices.add(idx));
+        comparisons = cache.comparisons;
+        swaps = cache.swaps;
         startStep = cache.stepIndex + 1;
       } else {
         tempArray = [...trace.initial_array];
@@ -198,10 +216,12 @@ function App() {
         const s = trace.steps[i];
 
         if (s.type === 'compare') {
+          comparisons++;
           if (i === currentStepIndex) {
             s.indices.forEach((idx) => (tempStates[idx] = 'comparing'));
           }
         } else if (s.type === 'swap') {
+          swaps++;
           const [idx1, idx2] = s.indices;
           [tempArray[idx1], tempArray[idx2]] = [tempArray[idx2], tempArray[idx1]];
           if (i === currentStepIndex) {
@@ -209,6 +229,7 @@ function App() {
             tempStates[idx2] = 'swapping';
           }
         } else if (s.type === 'overwrite') {
+          swaps++;
           const idx = s.indices[0];
           if (s.value !== undefined) {
             tempArray[idx] = s.value;
@@ -243,15 +264,19 @@ function App() {
         stepIndex: currentStepIndex,
         array: [...tempArray],
         sortedIndices: new Set(sortedIndices),
+        comparisons,
+        swaps,
       };
 
-      return { tempArray, tempStates };
+      return { tempArray, tempStates, comparisons, swaps };
     };
 
-    const { tempArray, tempStates } = rebuildState();
+    const { tempArray, tempStates, comparisons, swaps } = rebuildState();
 
     setCurrentArray(tempArray);
     setBarStates(tempStates);
+    setCurrentComparisons(comparisons);
+    setCurrentSwaps(swaps);
 
     if (isPlaying) {
        playStepAudio(currentStepIndex, tempArray);
@@ -320,11 +345,15 @@ function App() {
               setCurrentArray([...trace.initial_array]);
               setBarStates(new Array(trace.initial_array.length).fill('default'));
           }
+          setCurrentComparisons(0);
+          setCurrentSwaps(0);
           cachedStateRef.current = {
             trace: null,
             stepIndex: -1,
             array: [],
             sortedIndices: new Set<number>(),
+            comparisons: 0,
+            swaps: 0,
           };
         }}
         arraySize={arraySize}
@@ -352,8 +381,8 @@ function App() {
           />
           <div className="metrics-panel" aria-label="Sorting Metrics">
             <span className="metric-item">Step: <span className="metric-value">{trace ? `${currentStepIndex} / ${trace.steps.length}` : '0 / 0'}</span></span>
-            <span className="metric-item">Comparisons: <span className="metric-value">{trace ? trace.comparisons : 0}</span></span>
-            <span className="metric-item">Swaps: <span className="metric-value">{trace ? trace.swaps : 0}</span></span>
+            <span className="metric-item">Comparisons: <span className="metric-value">{trace ? currentComparisons : 0}</span></span>
+            <span className="metric-item">{trace && trace.swaps === 0 && trace.steps.some(s => s.type === 'overwrite') ? 'Writes' : 'Swaps'}: <span className="metric-value">{trace ? currentSwaps : 0}</span></span>
           </div>
         </section>
 
