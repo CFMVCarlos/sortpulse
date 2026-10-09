@@ -164,19 +164,22 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: 100%;
 }
 
 .sidebar-section {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: 100%;
 }
 
 /* Canvas Area */
 .canvas-wrapper {
-  display: flex;
-  justify-content: center;
+  display: block;
   width: 100%;
+  position: relative;
+  overflow: hidden;
   box-sizing: border-box;
 }
 
@@ -186,8 +189,10 @@
   border: 1px solid var(--border-color);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
   width: 100%;
-  height: auto;
+  max-width: 100%;
+  height: 360px;
   display: block;
+  box-sizing: border-box;
 }
 
 /* Algorithm Info Card */
