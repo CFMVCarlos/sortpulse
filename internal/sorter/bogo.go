@@ -19,11 +19,26 @@ func (s *BogoSorter) Meta() AlgorithmMeta {
 		WorstTime:       "O(∞)",
 		SpaceComplexity: "O(1)",
 		Stable:          false,
-		Description:     "A highly ineffective, humorous sorting algorithm that repeatedly shuffles an array until it happens to be sorted. Capped at 1,000 shuffle attempts to prevent infinite execution.",
+		Description:     "A highly ineffective, humorous sorting algorithm that repeatedly shuffles an array until it happens to be sorted. Capped by an O(n²) Bubble Sort operation budget to prevent browser freeze.",
 	}
 }
 
-const maxBogoShuffles = 1000
+// calculateMaxShuffles bounds Bogo Sort shuffles so total operations match
+// Bubble Sort's O(n²) ceiling, preventing client lag while giving small arrays a chance to sort.
+func calculateMaxShuffles(n int) int {
+	if n <= 4 {
+		return 20
+	}
+	// Bubble Sort performs at most n*(n-1)/2 comparisons and n*(n-1)/2 swaps (~n² steps).
+	// In Bogo Sort, each shuffle requires ~2n steps.
+	// Allowing n shuffles yields ~2n² steps, staying strictly on par with Bubble Sort's O(n²).
+	// We cap at 100 shuffles to guarantee the web client stays fast and responsive.
+	shuffles := n
+	if shuffles > 100 {
+		shuffles = 100
+	}
+	return shuffles
+}
 
 func (s *BogoSorter) Sort(input []int) Trace {
 	startTime := time.Now()
@@ -50,8 +65,9 @@ func (s *BogoSorter) Sort(input []int) Trace {
 			return true
 		}
 
+		maxShuffles := calculateMaxShuffles(n)
 		sorted := isSorted()
-		for attempt := 1; attempt <= maxBogoShuffles && !sorted; attempt++ {
+		for attempt := 1; attempt <= maxShuffles && !sorted; attempt++ {
 			// Fisher-Yates shuffle
 			for i := n - 1; i > 0; i-- {
 				j := rng.Intn(i + 1)
@@ -74,7 +90,7 @@ func (s *BogoSorter) Sort(input []int) Trace {
 			tracer.steps = append(tracer.steps, Step{
 				Type:        StepCompare,
 				Indices:     []int{0},
-				Description: fmt.Sprintf("BogoSort safety limit reached (%d shuffles); stopped to prevent infinite execution", maxBogoShuffles),
+				Description: fmt.Sprintf("BogoSort safety limit reached (%d shuffles, capped on par with Bubble Sort O(n²) operations to prevent browser freeze)", maxShuffles),
 			})
 		}
 	} else if n == 1 {

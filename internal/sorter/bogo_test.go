@@ -96,3 +96,18 @@ func TestBogoSortSafetyLimit(t *testing.T) {
 		}
 	}
 }
+
+func TestCalculateMaxShuffles(t *testing.T) {
+	if s := calculateMaxShuffles(3); s != 20 {
+		t.Errorf("calculateMaxShuffles(3) = %d, want 20", s)
+	}
+	if s := calculateMaxShuffles(10); s != 10 {
+		t.Errorf("calculateMaxShuffles(10) = %d, want 10", s)
+	}
+	if s := calculateMaxShuffles(50); s != 50 {
+		t.Errorf("calculateMaxShuffles(50) = %d, want 50", s)
+	}
+	if s := calculateMaxShuffles(500); s != 100 {
+		t.Errorf("calculateMaxShuffles(500) = %d, want 100", s)
+	}
+}
