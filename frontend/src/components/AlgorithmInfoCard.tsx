@@ -5,6 +5,19 @@ interface AlgorithmInfoCardProps {
     algorithm: AlgorithmMeta | null;
 }
 
+const getCategoryBadgeStyle = (category: string) => {
+    switch (category) {
+        case 'comparison':
+            return { backgroundColor: '#e0f2fe', color: '#0369a1' };
+        case 'distribution':
+            return { backgroundColor: '#f3e8ff', color: '#6b21a8' };
+        case 'hybrid':
+            return { backgroundColor: '#dcfce7', color: '#15803d' };
+        default:
+            return { backgroundColor: '#f1f5f9', color: '#475569' };
+    }
+};
+
 export const AlgorithmInfoCard: React.FC<AlgorithmInfoCardProps> = ({ algorithm }) => {
     if (!algorithm) return null;
 
@@ -13,7 +26,10 @@ export const AlgorithmInfoCard: React.FC<AlgorithmInfoCardProps> = ({ algorithm 
             <header className="algo-card-header">
                 <h2 id="algo-title" className="algo-card-title">{algorithm.name}</h2>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span className="badge" style={{ backgroundColor: '#e0f2fe', color: '#0369a1' }}>
+                    <span
+                        className="badge"
+                        style={{ ...getCategoryBadgeStyle(algorithm.category), textTransform: 'capitalize' }}
+                    >
                         {algorithm.category}
                     </span>
                     <span className={`badge ${algorithm.stable ? 'badge-stable' : 'badge-unstable'}`}>

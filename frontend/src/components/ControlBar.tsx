@@ -22,6 +22,14 @@ interface ControlBarProps {
     onToggleMute: () => void;
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+    comparison: 'Comparison Based',
+    distribution: 'Distribution / Non-Comparison',
+    hybrid: 'Hybrid Algorithms',
+};
+
+const CATEGORY_ORDER = ['comparison', 'distribution', 'hybrid'];
+
 export const ControlBar: React.FC<ControlBarProps> = ({
     algorithms,
     selectedAlgorithm,
@@ -43,6 +51,30 @@ export const ControlBar: React.FC<ControlBarProps> = ({
 }) => {
     const currentSpeed = SPEED_LEVELS[speedLevel] || SPEED_LEVELS[3];
 
+    const groupedAlgorithms = React.useMemo(() => {
+        const groups: Record<string, AlgorithmMeta[]> = {};
+        for (const algo of algorithms) {
+            const cat = algo.category || 'other';
+            if (!groups[cat]) {
+                groups[cat] = [];
+            }
+            groups[cat].push(algo);
+        }
+        return groups;
+    }, [algorithms]);
+
+    const sortedCategories = React.useMemo(() => {
+        const presentCategories = Object.keys(groupedAlgorithms);
+        return presentCategories.sort((a, b) => {
+            const idxA = CATEGORY_ORDER.indexOf(a);
+            const idxB = CATEGORY_ORDER.indexOf(b);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return a.localeCompare(b);
+        });
+    }, [groupedAlgorithms]);
+
     return (
         <section aria-label="Sorting Controls" className="control-bar">
             <div className="control-bar-row">
@@ -56,10 +88,17 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                         aria-label="Select sorting algorithm"
                     >
                         <option value="" disabled>Select Algorithm</option>
-                        {algorithms.map((algo) => (
-                            <option key={algo.id} value={algo.id}>
-                                {algo.name}
-                            </option>
+                        {sortedCategories.map((cat) => (
+                            <optgroup
+                                key={cat}
+                                label={CATEGORY_LABELS[cat] || (cat.charAt(0).toUpperCase() + cat.slice(1))}
+                            >
+                                {groupedAlgorithms[cat].map((algo) => (
+                                    <option key={algo.id} value={algo.id}>
+                                        {algo.name}
+                                    </option>
+                                ))}
+                            </optgroup>
                         ))}
                     </select>
                 </div>
