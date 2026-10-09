@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import type { AlgorithmMeta, Trace } from './types/sort';
+import { SPEED_LEVELS } from './types/sort';
 import { fetchAlgorithms, fetchSortTrace } from './api/client';
 import { ControlBar } from './components/ControlBar';
 import { CanvasVisualizer } from './components/CanvasVisualizer';
@@ -21,7 +22,7 @@ function App() {
   const [trace, setTrace] = useState<Trace | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [speed, setSpeed] = useState<number>(50); // delay in ms
+  const [speedLevel, setSpeedLevel] = useState<number>(3); // Level 3 corresponds to 8x speed
 
   // Audio state
   const [isMuted, setIsMuted] = useState<boolean>(audioEngine.getMuted());
@@ -211,9 +212,10 @@ function App() {
 
     if (isPlaying) {
        playStepAudio(currentStepIndex, tempArray);
+       const config = SPEED_LEVELS[speedLevel] || SPEED_LEVELS[3];
        timerRef.current = window.setTimeout(() => {
-         setCurrentStepIndex(prev => prev + 1);
-       }, speed);
+         setCurrentStepIndex(prev => Math.min(prev + config.batch, trace.steps.length));
+       }, config.delay);
     }
 
     return () => {
@@ -221,7 +223,7 @@ function App() {
         clearTimeout(timerRef.current);
       }
     };
-  }, [isPlaying, currentStepIndex, trace, speed, currentArray.length, playStepAudio]);
+  }, [isPlaying, currentStepIndex, trace, speedLevel, currentArray.length, playStepAudio]);
 
   const handleScrub = (step: number) => {
     setIsPlaying(false);
@@ -281,8 +283,8 @@ function App() {
         onGenerateArray={(type) => generateArray(type, arraySize)}
         isPlaying={isPlaying}
         onTogglePlay={togglePlay}
-        speed={speed}
-        onSpeedChange={setSpeed}
+        speedLevel={speedLevel}
+        onSpeedLevelChange={setSpeedLevel}
         currentStepIndex={currentStepIndex}
         totalSteps={trace ? trace.steps.length : 0}
         onScrub={handleScrub}

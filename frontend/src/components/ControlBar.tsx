@@ -1,5 +1,6 @@
 import React from 'react';
 import type { AlgorithmMeta } from '../types/sort';
+import { SPEED_LEVELS } from '../types/sort';
 
 interface ControlBarProps {
     algorithms: AlgorithmMeta[];
@@ -10,8 +11,8 @@ interface ControlBarProps {
     onGenerateArray: (type: 'random' | 'reverse' | 'nearly_sorted') => void;
     isPlaying: boolean;
     onTogglePlay: () => void;
-    speed: number;
-    onSpeedChange: (speed: number) => void;
+    speedLevel: number;
+    onSpeedLevelChange: (level: number) => void;
     currentStepIndex: number;
     totalSteps: number;
     onScrub: (step: number) => void;
@@ -30,8 +31,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
     onGenerateArray,
     isPlaying,
     onTogglePlay,
-    speed,
-    onSpeedChange,
+    speedLevel,
+    onSpeedLevelChange,
     currentStepIndex,
     totalSteps,
     onScrub,
@@ -40,6 +41,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
     isMuted,
     onToggleMute,
 }) => {
+    const currentSpeed = SPEED_LEVELS[speedLevel] || SPEED_LEVELS[3];
+
     return (
         <section aria-label="Sorting Controls" className="control-bar">
             <div className="control-bar-row">
@@ -66,14 +69,15 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                     <input
                         id="array-size"
                         type="range"
-                        min="10"
-                        max="150"
+                        min="25"
+                        max="500"
+                        step="25"
                         value={arraySize}
                         onChange={(e) => onArraySizeChange(Number(e.target.value))}
                         disabled={isPlaying}
                         aria-label="Array size"
-                        aria-valuemin={10}
-                        aria-valuemax={150}
+                        aria-valuemin={25}
+                        aria-valuemax={500}
                         aria-valuenow={arraySize}
                     />
                 </div>
@@ -121,19 +125,19 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 </div>
 
                 <div className="control-group">
-                    <label htmlFor="speed">Speed ({speed}ms):</label>
+                    <label htmlFor="speed">Speed ({currentSpeed.multiplier}):</label>
                     <input
                         id="speed"
                         type="range"
-                        min="1"
-                        max="200"
-                        value={speed}
-                        onChange={(e) => onSpeedChange(Number(e.target.value))}
-                        style={{ direction: 'rtl' }}
-                        aria-label="Animation step delay in milliseconds"
-                        aria-valuemin={1}
-                        aria-valuemax={200}
-                        aria-valuenow={speed}
+                        min="0"
+                        max={SPEED_LEVELS.length - 1}
+                        step="1"
+                        value={speedLevel}
+                        onChange={(e) => onSpeedLevelChange(Number(e.target.value))}
+                        aria-label="Animation speed multiplier"
+                        aria-valuemin={0}
+                        aria-valuemax={SPEED_LEVELS.length - 1}
+                        aria-valuenow={speedLevel}
                     />
                 </div>
 

@@ -41,3 +41,26 @@ export interface Trace {
     swaps: number;
     execution_time_us: number;
 }
+
+/**
+ * Animation speed multiplier level definition.
+ */
+export interface SpeedLevel {
+    multiplier: string;
+    delay: number;
+    batch: number;
+}
+
+export const SPEED_LEVELS: readonly SpeedLevel[] = [
+    { multiplier: '1x', delay: 200, batch: 1 },
+    { multiplier: '2x', delay: 100, batch: 1 },
+    { multiplier: '4x', delay: 50, batch: 1 },
+    { multiplier: '8x', delay: 25, batch: 1 },
+    { multiplier: '16x', delay: 12, batch: 1 },
+    { multiplier: '32x', delay: 16, batch: 2 },
+    { multiplier: '64x', delay: 16, batch: 4 },
+    { multiplier: '128x', delay: 16, batch: 8 },
+    { multiplier: '256x', delay: 16, batch: 16 },
+    { multiplier: '512x', delay: 16, batch: 32 },
+    { multiplier: '1024x', delay: 16, batch: 64 },
+] as const;
