@@ -14,11 +14,11 @@ const Slider = React.forwardRef<
     )}
     {...props}
   >
-    <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-slate-100">
-      <SliderPrimitive.Range className="absolute h-full bg-[#5b42e6] data-[disabled]:bg-slate-400" />
+    <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+      <SliderPrimitive.Range className="absolute h-full bg-[#5b42e6] dark:bg-[#7053f2] data-[disabled]:bg-slate-400 dark:data-[disabled]:bg-slate-600" />
     </SliderPrimitive.Track>
     <SliderPrimitive.Thumb
-      className="block h-4 w-4 rounded-full border-2 border-[#5b42e6] bg-white shadow-sm ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7053f2] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[disabled]:border-slate-400 data-[disabled]:shadow-none"
+      className="block h-4 w-4 rounded-full border-2 border-[#5b42e6] dark:border-[#7053f2] bg-white dark:bg-slate-900 shadow-sm ring-offset-white dark:ring-offset-slate-950 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7053f2] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[disabled]:border-slate-400 dark:data-[disabled]:border-slate-600 data-[disabled]:shadow-none"
     />
   </SliderPrimitive.Root>
 ));

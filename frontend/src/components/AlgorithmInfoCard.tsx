@@ -13,15 +13,15 @@ export const AlgorithmInfoCard: React.FC<AlgorithmInfoCardProps> = ({ algorithm 
     if (!algorithm) return null;
 
     return (
-        <Card className="w-full border-slate-200/90 shadow-sm bg-white overflow-hidden">
+        <Card className="w-full border-slate-200/90 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 transition-colors overflow-hidden">
             <CardHeader className="p-6 pb-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-lg bg-[#f3f0ff] border border-[#ddd6fe] flex items-center justify-center text-[#5b42e6]">
+                        <div className="h-9 w-9 rounded-lg bg-[#f3f0ff] dark:bg-indigo-950/60 border border-[#ddd6fe] dark:border-indigo-900/60 flex items-center justify-center text-[#5b42e6] dark:text-[#a5b4fc]">
                             <BookOpen className="h-4 w-4" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg font-bold text-slate-900 tracking-tight">
+                            <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                                 {algorithm.name}
                             </CardTitle>
                             <p className="text-xs text-slate-400 capitalize">
@@ -40,7 +40,7 @@ export const AlgorithmInfoCard: React.FC<AlgorithmInfoCardProps> = ({ algorithm 
                                 Stable
                             </Badge>
                         ) : (
-                            <Badge variant="secondary" className="flex items-center gap-1 text-xs font-medium text-slate-600">
+                            <Badge variant="secondary" className="flex items-center gap-1 text-xs font-medium text-slate-600 dark:text-slate-300">
                                 <ShieldAlert className="h-3 w-3 text-slate-400" />
                                 Unstable
                             </Badge>
@@ -57,7 +57,7 @@ export const AlgorithmInfoCard: React.FC<AlgorithmInfoCardProps> = ({ algorithm 
                     <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                         Overview & Behavior
                     </h4>
-                    <p className="text-sm text-slate-600 leading-relaxed font-normal">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                         {algorithm.description}
                     </p>
                 </div>
@@ -65,27 +65,27 @@ export const AlgorithmInfoCard: React.FC<AlgorithmInfoCardProps> = ({ algorithm 
                 {/* Complexities Grid */}
                 <div className="lg:w-[480px] grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0">
                     {/* Time Complexity Card */}
-                    <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 flex flex-col justify-between">
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-2">
-                            <Clock className="h-3.5 w-3.5 text-[#5b42e6]" />
+                    <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-3.5 flex flex-col justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                            <Clock className="h-3.5 w-3.5 text-[#5b42e6] dark:text-[#a5b4fc]" />
                             <span>Time Complexity</span>
                         </div>
-                        <div className="space-y-1.5 text-xs text-slate-600">
+                        <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
                             <div className="flex items-center justify-between">
                                 <span className="text-slate-400">Best:</span>
-                                <code className="font-mono font-semibold bg-white px-2 py-0.5 rounded border border-slate-200 text-[#4f36db]">
+                                <code className="font-mono font-semibold bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-[#4f36db] dark:text-indigo-300">
                                     {algorithm.best_time}
                                 </code>
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-slate-400">Average:</span>
-                                <code className="font-mono font-semibold bg-white px-2 py-0.5 rounded border border-slate-200 text-[#4f36db]">
+                                <code className="font-mono font-semibold bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-[#4f36db] dark:text-indigo-300">
                                     {algorithm.average_time}
                                 </code>
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-slate-400">Worst:</span>
-                                <code className="font-mono font-semibold bg-white px-2 py-0.5 rounded border border-slate-200 text-[#4f36db]">
+                                <code className="font-mono font-semibold bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-[#4f36db] dark:text-indigo-300">
                                     {algorithm.worst_time}
                                 </code>
                             </div>
@@ -93,15 +93,15 @@ export const AlgorithmInfoCard: React.FC<AlgorithmInfoCardProps> = ({ algorithm 
                     </div>
 
                     {/* Space Complexity Card */}
-                    <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 flex flex-col justify-between">
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-2">
-                            <HardDrive className="h-3.5 w-3.5 text-[#5b42e6]" />
+                    <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-3.5 flex flex-col justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                            <HardDrive className="h-3.5 w-3.5 text-[#5b42e6] dark:text-[#a5b4fc]" />
                             <span>Space Complexity</span>
                         </div>
-                        <div className="flex flex-col justify-center h-full gap-2 text-xs text-slate-600 pt-1">
+                        <div className="flex flex-col justify-center h-full gap-2 text-xs text-slate-600 dark:text-slate-300 pt-1">
                             <div className="flex items-center justify-between">
                                 <span className="text-slate-400">Auxiliary Space:</span>
-                                <code className="font-mono font-semibold bg-white px-2 py-0.5 rounded border border-slate-200 text-[#4f36db]">
+                                <code className="font-mono font-semibold bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-[#4f36db] dark:text-indigo-300">
                                     {algorithm.space_complexity}
                                 </code>
                             </div>

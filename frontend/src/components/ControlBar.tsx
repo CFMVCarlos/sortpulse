@@ -27,6 +27,8 @@ import {
     ListOrdered,
     ChevronDown,
     ChevronUp,
+    Sun,
+    Moon,
 } from 'lucide-react';
 
 interface ControlBarProps {
@@ -43,6 +45,8 @@ interface ControlBarProps {
     onSpeedLevelChange: (level: number) => void;
     isMuted: boolean;
     onToggleMute: () => void;
+    isDark?: boolean;
+    onToggleTheme?: () => void;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -67,6 +71,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
     onSpeedLevelChange,
     isMuted,
     onToggleMute,
+    isDark = false,
+    onToggleTheme,
 }) => {
     const [isMobileExpanded, setIsMobileExpanded] = React.useState(true);
     const currentSpeed = SPEED_LEVELS[speedLevel] || SPEED_LEVELS[3];
@@ -96,42 +102,55 @@ export const ControlBar: React.FC<ControlBarProps> = ({
     }, [groupedAlgorithms]);
 
     return (
-        <Card className="w-full h-full flex flex-col border-slate-200/90 shadow-sm bg-white">
+        <Card className="w-full h-full flex flex-col border-slate-200/90 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 transition-colors">
             <CardHeader className="p-4 sm:p-5 pb-3 sm:pb-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                        <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-[#5b42e6] flex items-center justify-center text-white shadow-xs">
+                        <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-[#5b42e6] dark:bg-[#7053f2] flex items-center justify-center text-white shadow-xs">
                             <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </div>
                         <div>
-                            <CardTitle className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+                            <CardTitle className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                                 SortPulse
                             </CardTitle>
                             <p className="text-[11px] sm:text-xs text-slate-400 font-medium">Controls & Settings</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-1">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsMobileExpanded(!isMobileExpanded)}
-                            className="lg:hidden text-xs text-slate-500 hover:text-[#5b42e6] hover:bg-[#f3f0ff] h-8 px-2 flex items-center gap-1 font-medium"
-                            aria-label={isMobileExpanded ? 'Collapse controls' : 'Expand controls'}
-                        >
-                            <span>{isMobileExpanded ? 'Hide' : 'Options'}</span>
-                            {isMobileExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                        </Button>
+                        {onToggleTheme && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={onToggleTheme}
+                                aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+                                className="text-slate-500 hover:text-[#5b42e6] hover:bg-[#f3f0ff] dark:hover:bg-slate-800"
+                                title={isDark ? 'Light mode' : 'Dark mode'}
+                            >
+                                {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
+                            </Button>
+                        )}
                         <Button
                             type="button"
                             variant="ghost"
                             size="icon-sm"
                             onClick={onToggleMute}
                             aria-label={isMuted ? 'Unmute audio feedback' : 'Mute audio feedback'}
-                            className="text-slate-500 hover:text-[#5b42e6] hover:bg-[#f3f0ff]"
+                            className="text-slate-500 hover:text-[#5b42e6] hover:bg-[#f3f0ff] dark:hover:bg-slate-800"
                             title={isMuted ? 'Unmute audio' : 'Mute audio'}
                         >
-                            {isMuted ? <VolumeX className="h-4 w-4 text-slate-400" /> : <Volume2 className="h-4 w-4 text-[#5b42e6]" />}
+                            {isMuted ? <VolumeX className="h-4 w-4 text-slate-400" /> : <Volume2 className="h-4 w-4 text-[#5b42e6] dark:text-indigo-400" />}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsMobileExpanded(!isMobileExpanded)}
+                            className="lg:hidden text-xs text-slate-500 hover:text-[#5b42e6] hover:bg-[#f3f0ff] dark:hover:bg-slate-800 h-8 px-2 flex items-center gap-1 font-medium"
+                            aria-label={isMobileExpanded ? 'Collapse controls' : 'Expand controls'}
+                        >
+                            <span>{isMobileExpanded ? 'Hide' : 'Options'}</span>
+                            {isMobileExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                         </Button>
                     </div>
                 </div>
@@ -144,9 +163,9 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="algorithm-select"
-                        className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5"
+                        className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5"
                     >
-                        <SlidersHorizontal className="h-3.5 w-3.5 text-[#5b42e6]" />
+                        <SlidersHorizontal className="h-3.5 w-3.5 text-[#5b42e6] dark:text-[#a5b4fc]" />
                         Algorithm
                     </label>
                     <Select
@@ -184,7 +203,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 >
                     {isPlaying ? (
                         <>
-                            <Pause className="h-4 w-4 fill-current text-slate-800" />
+                            <Pause className="h-4 w-4 fill-current text-slate-800 dark:text-slate-100" />
                             <span>Pause</span>
                         </>
                     ) : (
@@ -200,14 +219,14 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 {/* Array Size Configuration */}
                 <div className={`flex flex-col gap-2.5 transition-opacity duration-200 ${isPlaying ? 'opacity-50' : ''}`}>
                     <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-slate-500 uppercase tracking-wider">
+                        <span className="font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                             Array Size
                         </span>
                         <span
                             className={`font-mono font-bold px-2 py-0.5 rounded text-xs border transition-colors ${
                                 isPlaying
-                                    ? 'text-slate-400 bg-slate-100 border-slate-200'
-                                    : 'text-[#4f36db] bg-[#f3f0ff] border-[#ddd6fe]'
+                                    ? 'text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                                    : 'text-[#4f36db] dark:text-indigo-300 bg-[#f3f0ff] dark:bg-indigo-950/60 border-[#ddd6fe] dark:border-indigo-900/60'
                             }`}
                         >
                             {arraySize} elements
@@ -226,7 +245,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
 
                 {/* Array Distribution Preset */}
                 <div className="flex flex-col gap-2">
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                         Initial Order
                     </span>
                     <div className="grid grid-cols-3 gap-1.5" role="group" aria-label="Array order options">
@@ -271,11 +290,11 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 {/* Speed Multiplier */}
                 <div className="flex flex-col gap-2.5">
                     <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                            <Gauge className="h-3.5 w-3.5 text-[#5b42e6]" />
+                        <span className="font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                            <Gauge className="h-3.5 w-3.5 text-[#5b42e6] dark:text-[#a5b4fc]" />
                             Speed
                         </span>
-                        <span className="font-mono font-bold text-[#4f36db] bg-[#f3f0ff] px-2 py-0.5 rounded text-xs border border-[#ddd6fe]">
+                        <span className="font-mono font-bold text-[#4f36db] dark:text-indigo-300 bg-[#f3f0ff] dark:bg-indigo-950/60 px-2 py-0.5 rounded text-xs border border-[#ddd6fe] dark:border-indigo-900/60">
                             {currentSpeed.multiplier}
                         </span>
                     </div>

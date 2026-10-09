@@ -13,6 +13,35 @@ function App() {
   const [algorithms, setAlgorithms] = useState<AlgorithmMeta[]>([]);
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<string>('');
 
+  // Dark mode state with persistence
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sortpulse_theme');
+      if (saved) return saved === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+      root.setAttribute('data-theme', 'dark');
+      document.body.classList.add('dark');
+      localStorage.setItem('sortpulse_theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
+      document.body.classList.remove('dark');
+      localStorage.setItem('sortpulse_theme', 'light');
+    }
+  }, [isDark]);
+
+  const toggleTheme = () => {
+    setIsDark((prev) => !prev);
+  };
+
   // Array state
   const [arraySize, setArraySize] = useState<number>(50);
   const [selectedArrayType, setSelectedArrayType] = useState<'random' | 'reverse' | 'nearly_sorted'>('random');
@@ -183,13 +212,18 @@ function App() {
       }
   }, [trace]);
 
+  // Check if final array was actually sorted (detect Bogo sort limit abortions)
+  const isFinalSorted = trace
+    ? trace.final_array.every((val, i, arr) => i === 0 || arr[i - 1] <= val)
+    : true;
+
   // State machine for step execution
   useEffect(() => {
     if (!trace) return;
 
     if (currentStepIndex >= trace.steps.length && isPlaying) {
       setIsPlaying(false);
-      setBarStates(new Array(currentArray.length).fill('sorted'));
+      setBarStates(new Array(currentArray.length).fill(isFinalSorted ? 'sorted' : 'unsorted'));
       return;
     }
 
@@ -259,12 +293,21 @@ function App() {
         }
       }
 
-      // Ensure all previously marked sorted remain green
-      sortedIndices.forEach((idx) => {
-        if (tempStates[idx] === 'default') {
-          tempStates[idx] = 'sorted';
+      // If finished and aborted unsorted (e.g. Bogo limit reached), color bars red
+      if (currentStepIndex >= trace.steps.length) {
+        if (!isFinalSorted) {
+          tempStates = new Array(tempArray.length).fill('unsorted');
+        } else {
+          tempStates = new Array(tempArray.length).fill('sorted');
         }
-      });
+      } else {
+        // Ensure all previously marked sorted remain green
+        sortedIndices.forEach((idx) => {
+          if (tempStates[idx] === 'default') {
+            tempStates[idx] = 'sorted';
+          }
+        });
+      }
 
       // Update cache for next tick
       cachedStateRef.current = {
@@ -299,7 +342,7 @@ function App() {
         clearTimeout(timerRef.current);
       }
     };
-  }, [isPlaying, currentStepIndex, trace, speedLevel, currentArray.length, playStepAudio]);
+  }, [isPlaying, currentStepIndex, trace, speedLevel, currentArray.length, playStepAudio, isFinalSorted]);
 
   const handleScrub = (step: number) => {
     setIsPlaying(false);
@@ -320,19 +363,25 @@ function App() {
     }
   };
 
+  const isUnsortedAborted = Boolean(
+    trace &&
+    currentStepIndex >= trace.steps.length &&
+    !isFinalSorted
+  );
+
   return (
-    <div className="min-h-screen w-full bg-slate-50/50 text-slate-900 flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8 font-sans antialiased">
+    <div className="min-h-screen w-full bg-slate-50/50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-start p-3 sm:p-6 lg:p-8 font-sans antialiased transition-colors duration-200">
       {errorMessage && (
         <div
           role="alert"
-          className="w-full max-w-7xl mb-4 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800 shadow-xs"
+          className="w-full max-w-7xl mb-4 flex items-center gap-2.5 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 p-4 text-sm font-medium text-red-800 dark:text-red-300 shadow-xs"
         >
-          <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+          <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
           <span>{errorMessage}</span>
         </div>
       )}
 
-      <main className="w-full max-w-7xl flex flex-col gap-6">
+      <main className="w-full max-w-7xl flex flex-col gap-5 sm:gap-6">
         {/* Upper section: 2 columns (Visualizer on top on mobile, Controls on left on desktop) */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
           {/* Visualizer ("bars") Column with embedded timeline scrubber and stats */}
@@ -345,10 +394,13 @@ function App() {
               currentComparisons={currentComparisons}
               currentSwaps={currentSwaps}
               isPlaying={isPlaying}
+              isUnsortedAborted={isUnsortedAborted}
               onScrub={handleScrub}
               onStepBackward={handleStepBackward}
               onStepForward={handleStepForward}
               onTogglePlay={togglePlay}
+              isDark={isDark}
+              onToggleTheme={toggleTheme}
             />
           </div>
 
@@ -386,6 +438,8 @@ function App() {
               onSpeedLevelChange={setSpeedLevel}
               isMuted={isMuted}
               onToggleMute={toggleMute}
+              isDark={isDark}
+              onToggleTheme={toggleTheme}
             />
           </div>
         </section>

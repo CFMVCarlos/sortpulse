@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 
-export type BarState = 'default' | 'comparing' | 'swapping' | 'sorted' | 'pivot';
+export type BarState = 'default' | 'comparing' | 'swapping' | 'sorted' | 'pivot' | 'unsorted';
 
 interface CanvasVisualizerProps {
     array: number[];
@@ -14,6 +14,7 @@ const STATE_COLORS: Record<BarState, string> = {
     swapping: '#f43f5e',   // rose red for swap/overwrite
     sorted: '#10b981',     // vibrant emerald for sorted confirmation
     pivot: '#8b5cf6',      // violet for pivot
+    unsorted: '#ef4444',   // bold crimson red for aborted/unsorted data (e.g. Bogo Sort)
 };
 
 export const CanvasVisualizer: React.FC<CanvasVisualizerProps> = ({

@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
 @layer base {
-  :root {
-    --background: #ffffff;
+  :root,
+  [data-theme="light"] {
+    --background: #f8fafc;
     --foreground: #09090b;
     --card: #ffffff;
     --card-foreground: #09090b;
@@ -24,11 +27,35 @@
     --radius: 0.75rem;
   }
 
+  .dark,
+  [data-theme="dark"] {
+    --background: #090d16;
+    --foreground: #f8fafc;
+    --card: #0f172a;
+    --card-foreground: #f8fafc;
+    --popover: #0f172a;
+    --popover-foreground: #f8fafc;
+    --primary: #7053f2;
+    --primary-foreground: #ffffff;
+    --secondary: #1e293b;
+    --secondary-foreground: #f8fafc;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+    --accent: #1e1b4b;
+    --accent-foreground: #a5b4fc;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: #1e293b;
+    --input: #1e293b;
+    --ring: #818cf8;
+  }
+
   * {
     box-sizing: border-box;
     border-color: var(--border);
   }
 
+  html,
   body {
     background-color: var(--background);
     color: var(--foreground);
@@ -38,5 +65,6 @@
     padding: 0;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }

@@ -15,6 +15,10 @@ import {
     ArrowLeftRight,
     Play,
     Pause,
+    Timer,
+    AlertTriangle,
+    Sun,
+    Moon,
 } from 'lucide-react';
 
 interface VisualizerPanelProps {
@@ -25,10 +29,13 @@ interface VisualizerPanelProps {
     currentComparisons: number;
     currentSwaps: number;
     isPlaying: boolean;
+    isUnsortedAborted?: boolean;
     onScrub: (step: number) => void;
     onStepBackward: () => void;
     onStepForward: () => void;
     onTogglePlay?: () => void;
+    isDark?: boolean;
+    onToggleTheme?: () => void;
 }
 
 export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
@@ -39,10 +46,13 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
     currentComparisons,
     currentSwaps,
     isPlaying,
+    isUnsortedAborted = false,
     onScrub,
     onStepBackward,
     onStepForward,
     onTogglePlay,
+    isDark = false,
+    onToggleTheme,
 }) => {
     const [canvasHeight, setCanvasHeight] = useState(340);
 
@@ -62,19 +72,38 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
             ? 'Writes'
             : 'Swaps';
 
+    const formatComputeTime = (us?: number) => {
+        if (us === undefined || us === null) return '—';
+        if (us < 1000) return `${us} µs`;
+        return `${(us / 1000).toFixed(2)} ms`;
+    };
+
     return (
-        <Card className="w-full h-full flex flex-col border-slate-200/90 shadow-sm bg-white overflow-hidden">
+        <Card className="w-full h-full flex flex-col border-slate-200/90 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 transition-colors overflow-hidden">
             {/* Header with Title, Mobile Quick Action, and Legend */}
             <CardHeader className="p-4 sm:p-5 pb-3">
                 <div className="flex flex-wrap items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2">
-                        <BarChart3 className="h-4 w-4 text-[#5b42e6]" />
-                        <CardTitle className="text-sm sm:text-base font-semibold text-slate-900">
+                        <BarChart3 className="h-4 w-4 text-[#5b42e6] dark:text-[#a5b4fc]" />
+                        <CardTitle className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">
                             Array Visualization
                         </CardTitle>
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3">
+                        {onToggleTheme && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={onToggleTheme}
+                                aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+                                className="lg:hidden text-slate-500 hover:text-[#5b42e6] hover:bg-[#f3f0ff] dark:hover:bg-slate-800"
+                                title={isDark ? 'Light mode' : 'Dark mode'}
+                            >
+                                {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
+                            </Button>
+                        )}
                         {onTogglePlay && (
                             <Button
                                 type="button"
@@ -99,7 +128,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                         )}
 
                         {/* Color Legend */}
-                        <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] font-medium text-slate-500">
+                        <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400">
                             <span className="flex items-center gap-1">
                                 <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-[#5b42e6] inline-block" />
                                 <span className="hidden sm:inline">Default</span>
@@ -112,10 +141,17 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                                 <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-rose-500 inline-block" />
                                 <span className="hidden sm:inline">Swap</span>
                             </span>
-                            <span className="flex items-center gap-1">
-                                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-emerald-500 inline-block" />
-                                <span className="hidden sm:inline">Sorted</span>
-                            </span>
+                            {isUnsortedAborted ? (
+                                <span className="flex items-center gap-1">
+                                    <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-red-500 inline-block" />
+                                    <span className="text-red-600 dark:text-red-400 font-bold">Unsorted</span>
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-1">
+                                    <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-emerald-500 inline-block" />
+                                    <span className="hidden sm:inline">Sorted</span>
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -125,7 +161,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
 
             {/* Canvas Area */}
             <CardContent className="p-3 sm:p-5 flex-1 flex flex-col justify-between gap-3 sm:gap-4">
-                <div className="w-full flex-1 min-h-[240px] sm:min-h-[340px] flex items-center justify-center bg-slate-50/50 rounded-xl border border-slate-100 p-1 sm:p-2">
+                <div className="w-full flex-1 min-h-[240px] sm:min-h-[340px] flex items-center justify-center bg-slate-50/50 dark:bg-slate-950/40 rounded-xl border border-slate-100 dark:border-slate-800 p-1 sm:p-2">
                     <CanvasVisualizer
                         array={array}
                         barStates={barStates}
@@ -133,8 +169,19 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                     />
                 </div>
 
+                {/* Aborted Unsorted Banner (e.g. Bogo sort safety limit) */}
+                {isUnsortedAborted && isFinished && (
+                    <div
+                        role="alert"
+                        className="flex items-center gap-2 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 px-3 py-2 text-xs font-semibold text-red-700 dark:text-red-300 shadow-2xs"
+                    >
+                        <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+                        <span>Safety limit reached: Bogo Sort did not find the sorted order.</span>
+                    </div>
+                )}
+
                 {/* Timeline Scrubber Controls */}
-                <div className="flex flex-col gap-2.5 sm:gap-3 bg-slate-50/80 border border-slate-100 rounded-xl p-2.5 sm:p-3.5">
+                <div className="flex flex-col gap-2.5 sm:gap-3 bg-slate-50/80 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 rounded-xl p-2.5 sm:p-3.5">
                     <div className="flex items-center gap-2 sm:gap-3">
                         <Button
                             type="button"
@@ -142,7 +189,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                             size="sm"
                             onClick={onStepBackward}
                             disabled={isPlaying || currentStepIndex <= 0}
-                            className="h-7 sm:h-8 px-2 sm:px-2.5 text-xs text-slate-700 hover:text-[#5b42e6] hover:border-[#ddd6fe]"
+                            className="h-7 sm:h-8 px-2 sm:px-2.5 text-xs text-slate-700 dark:text-slate-200 hover:text-[#5b42e6] hover:border-[#ddd6fe] dark:hover:border-indigo-900"
                             aria-label="Step backward by one frame"
                         >
                             <SkipBack className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1" />
@@ -167,7 +214,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                             size="sm"
                             onClick={onStepForward}
                             disabled={isPlaying || currentStepIndex >= totalSteps || totalSteps === 0}
-                            className="h-7 sm:h-8 px-2 sm:px-2.5 text-xs text-slate-700 hover:text-[#5b42e6] hover:border-[#ddd6fe]"
+                            className="h-7 sm:h-8 px-2 sm:px-2.5 text-xs text-slate-700 dark:text-slate-200 hover:text-[#5b42e6] hover:border-[#ddd6fe] dark:hover:border-indigo-900"
                             aria-label="Step forward by one frame"
                         >
                             <span className="hidden xs:inline">Forward</span>
@@ -175,35 +222,63 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
                         </Button>
                     </div>
 
-                    {/* Embedded Live Metrics Bar */}
-                    <div className="grid grid-cols-3 gap-1 sm:gap-2 pt-1 border-t border-slate-200/60 text-center" aria-label="Sorting Metrics">
+                    {/* Expanded Live Performance Metrics Bar (4 Metrics) */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-800 text-center" aria-label="Sorting Performance Metrics">
+                        {/* Step Metric */}
                         <div className="flex flex-col items-center justify-center py-1">
-                            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                                <GitCommit className="h-3 w-3 text-[#5b42e6]" />
+                            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                <GitCommit className={`h-3 w-3 ${isUnsortedAborted && isFinished ? 'text-red-500' : 'text-[#5b42e6] dark:text-[#a5b4fc]'}`} />
                                 Step
                             </span>
-                            <span className="font-mono text-xs font-bold text-slate-800 mt-0.5">
+                            <span
+                                className={`font-mono text-xs font-bold mt-0.5 ${
+                                    isUnsortedAborted && isFinished
+                                        ? 'text-red-600 dark:text-red-400'
+                                        : 'text-slate-800 dark:text-slate-100'
+                                }`}
+                            >
                                 {trace ? `${currentStepIndex} / ${totalSteps}` : '0 / 0'}
                             </span>
                         </div>
 
-                        <div className="flex flex-col items-center justify-center py-1 border-x border-slate-200/60">
-                            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                        {/* Comparisons Metric */}
+                        <div className="flex flex-col items-center justify-center py-1 sm:border-l sm:border-slate-200/60 dark:sm:border-slate-800">
+                            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
                                 <ArrowLeftRight className="h-3 w-3 text-amber-500" />
                                 Comparisons
                             </span>
-                            <span className="font-mono text-xs font-bold text-slate-800 mt-0.5">
+                            <span className="font-mono text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5">
                                 {trace ? currentComparisons : 0}
                             </span>
                         </div>
 
-                        <div className="flex flex-col items-center justify-center py-1">
-                            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                                <CheckCircle2 className={`h-3 w-3 ${isFinished ? 'text-emerald-500' : 'text-rose-500'}`} />
+                        {/* Swaps/Writes Metric */}
+                        <div className="flex flex-col items-center justify-center py-1 sm:border-l sm:border-slate-200/60 dark:sm:border-slate-800">
+                            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                <CheckCircle2
+                                    className={`h-3 w-3 ${
+                                        isUnsortedAborted && isFinished
+                                            ? 'text-red-500'
+                                            : isFinished
+                                              ? 'text-emerald-500'
+                                              : 'text-rose-500'
+                                    }`}
+                                />
                                 {writesOrSwaps}
                             </span>
-                            <span className="font-mono text-xs font-bold text-slate-800 mt-0.5">
+                            <span className="font-mono text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5">
                                 {trace ? currentSwaps : 0}
+                            </span>
+                        </div>
+
+                        {/* Execution Time (Backend Compute) */}
+                        <div className="flex flex-col items-center justify-center py-1 sm:border-l sm:border-slate-200/60 dark:sm:border-slate-800">
+                            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                <Timer className="h-3 w-3 text-emerald-500" />
+                                Compute Time
+                            </span>
+                            <span className="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                {trace ? formatComputeTime(trace.execution_time_us) : '—'}
                             </span>
                         </div>
                     </div>
