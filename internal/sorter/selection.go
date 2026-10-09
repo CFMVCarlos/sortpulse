@@ -34,7 +34,7 @@ func (s *SelectionSorter) Sort(input []int) Trace {
 	}
 
 	n := len(arr)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		minIdx := i
 		for j := i + 1; j < n; j++ {
 			desc := fmt.Sprintf("Comparing arr[%d] (%d) with current min arr[%d] (%d)", j, arr[j], minIdx, arr[minIdx])

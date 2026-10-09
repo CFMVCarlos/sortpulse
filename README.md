@@ -1,6 +1,6 @@
 <div align="center">
 
-# SortPulse ⚡
+# SortPulse
 
 **Interactive, high-performance sorting algorithm visualization lab**
 
@@ -46,13 +46,20 @@
 | Algorithm | Best Time | Average Time | Worst Time | Space Complexity |
 | :--- | :--- | :--- | :--- | :--- |
 | **Bubble Sort** | O(n) | O(n²) | O(n²) | O(1) |
-| **Selection Sort** | O(n²) | O(n²) | O(n²) | O(1) |
-| **Insertion Sort** | O(n) | O(n²) | O(n²) | O(1) |
-| **Quick Sort** | O(n log n) | O(n log n) | O(n²) | O(log n) |
-| **Merge Sort** | O(n log n) | O(n log n) | O(n log n) | O(n) |
-| **Heap Sort** | O(n log n) | O(n log n) | O(n log n) | O(1) |
+| **Cocktail Shaker Sort** | O(n) | O(n²) | O(n²) | O(1) |
+| **Comb Sort** | O(n log n) | O(n² / 2^p) | O(n²) | O(1) |
 | **Counting Sort** | O(n + k) | O(n + k) | O(n + k) | O(k) |
+| **Cycle Sort** | O(n²) | O(n²) | O(n²) | O(1) |
+| **Gnome Sort** | O(n) | O(n²) | O(n²) | O(1) |
+| **Heap Sort** | O(n log n) | O(n log n) | O(n log n) | O(1) |
+| **Insertion Sort** | O(n) | O(n²) | O(n²) | O(1) |
+| **Merge Sort** | O(n log n) | O(n log n) | O(n log n) | O(n) |
+| **Odd-Even Sort** | O(n) | O(n²) | O(n²) | O(1) |
+| **Pancake Sort** | O(n) | O(n²) | O(n²) | O(1) |
+| **Quick Sort** | O(n log n) | O(n log n) | O(n²) | O(log n) |
 | **Radix Sort** | O(nk) | O(nk) | O(nk) | O(n + k) |
+| **Selection Sort** | O(n²) | O(n²) | O(n²) | O(1) |
+| **Shell Sort** | O(n log n) | O(n^(4/3)) | O(n²) | O(1) |
 
 ### REST API Endpoints
 | Endpoint | Method | Description |
@@ -73,8 +80,6 @@ sortpulse/
 │   └── api/             # REST API handlers and CORS middleware
 ├── frontend/            # React + TypeScript + Vite frontend application
 │   └── src/             # Canvas visualizer, playback controls, and audio engine
-├── ARCHITECTURE.md      # Detailed system architecture and data contracts
-├── PLAN.md              # 20–40 hour phased implementation roadmap
 └── README.md            # Project documentation and quickstart
 ```
 
@@ -138,10 +143,3 @@ Or manually:
 go test -v ./...
 npm --prefix frontend run lint
 ```
-
----
-
-## 📖 Architecture & Implementation Plan
-
-- Read [ARCHITECTURE.md](./ARCHITECTURE.md) for deep-dive diagrams, data schemas, and component design.
-- Follow [PLAN.md](./PLAN.md) for the 20–40 hour step-by-step development roadmap.

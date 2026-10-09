@@ -35,7 +35,7 @@ func (s *BubbleSorter) Sort(input []int) Trace {
 	}
 
 	n := len(arr)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		swapped := false
 		for j := 0; j < n-i-1; j++ {
 			desc := fmt.Sprintf("Comparing array[%d] (%d) with array[%d] (%d)", j, arr[j], j+1, arr[j+1])

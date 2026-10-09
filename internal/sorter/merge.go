@@ -45,7 +45,7 @@ func (s *MergeSorter) Sort(input []int) Trace {
 
 	mergeSort(0, len(arr)-1)
 
-	for i := 0; i < len(arr); i++ {
+	for i := range arr {
 		tracer.MarkSorted(i, fmt.Sprintf("arr[%d] is fully sorted", i))
 	}
 
@@ -72,10 +72,10 @@ func merge(tracer *Tracer, l, m, r int) {
 	L := make([]int, n1)
 	R := make([]int, n2)
 
-	for i := 0; i < n1; i++ {
+	for i := range n1 {
 		L[i] = tracer.arr[l+i]
 	}
-	for j := 0; j < n2; j++ {
+	for j := range n2 {
 		R[j] = tracer.arr[m+1+j]
 	}
 
@@ -96,7 +96,7 @@ func merge(tracer *Tracer, l, m, r int) {
 		tracer.comps++
 		tracer.steps = append(tracer.steps, Step{
 			Type:        StepCompare,
-			Indices:     []int{l+i, m+1+j}, // Note: this might not be accurate if the array was already overwritten, but let's keep it simple.
+			Indices:     []int{l + i, m + 1 + j}, // Note: this might not be accurate if the array was already overwritten, but let's keep it simple.
 			Description: desc,
 		})
 

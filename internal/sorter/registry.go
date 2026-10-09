@@ -19,6 +19,13 @@ func init() {
 	Register(&HeapSorter{})
 	Register(&CountingSorter{})
 	Register(&RadixSorter{})
+	Register(&ShellSorter{})
+	Register(&CocktailSorter{})
+	Register(&CombSorter{})
+	Register(&GnomeSorter{})
+	Register(&OddEvenSorter{})
+	Register(&PancakeSorter{})
+	Register(&CycleSorter{})
 }
 
 // Register adds a Sorter to the registry.

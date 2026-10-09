@@ -45,12 +45,12 @@ func (s *CountingSorter) Sort(input []int) Trace {
 
 		rangeSize := max - min + 1
 		count := make([]int, rangeSize)
-		for i := 0; i < len(arr); i++ {
+		for i := range arr {
 			count[arr[i]-min]++
 		}
 
 		idx := 0
-		for i := 0; i < rangeSize; i++ {
+		for i := range rangeSize {
 			for count[i] > 0 {
 				val := i + min
 				descOverwrite := fmt.Sprintf("Overwriting arr[%d] with %d", idx, val)

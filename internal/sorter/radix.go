@@ -66,7 +66,7 @@ func (s *RadixSorter) Sort(input []int) Trace {
 			}
 		}
 
-		for i := 0; i < len(arr); i++ {
+		for i := range arr {
 			tracer.MarkSorted(i, fmt.Sprintf("arr[%d] is fully sorted", i))
 		}
 	}
@@ -92,7 +92,7 @@ func countSort(tracer *Tracer, exp int) {
 	output := make([]int, n)
 	count := make([]int, 10)
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		count[(tracer.arr[i]/exp)%10]++
 	}
 
@@ -106,7 +106,7 @@ func countSort(tracer *Tracer, exp int) {
 		count[idx]--
 	}
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		if tracer.arr[i] != output[i] {
 			descOverwrite := fmt.Sprintf("Overwriting arr[%d] with %d for digit place %d", i, output[i], exp)
 			tracer.Overwrite(i, output[i], descOverwrite)
