@@ -20,6 +20,7 @@ func HandleAlgorithms(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(metas)
 }
 
+// SortRequest defines the JSON payload accepted by HandleSort.
 type SortRequest struct {
 	Algorithm string `json:"algorithm"`
 	Array     []int  `json:"array"`
