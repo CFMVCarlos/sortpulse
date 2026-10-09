@@ -155,6 +155,9 @@ function App() {
           audioEngine.playTone(val, maxValRef.current);
       } else if (s.type === 'overwrite' && s.value !== undefined) {
           audioEngine.playTone(s.value, maxValRef.current);
+      } else if (s.type === 'mark_sorted' && s.indices.length > 0) {
+          const val = tempArray[s.indices[0]];
+          audioEngine.playTone(val, maxValRef.current);
       }
   }, [trace]);
 

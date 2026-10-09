@@ -41,28 +41,37 @@ func (s *IntroSorter) Sort(input []int) Trace {
 		var introsort func(low, high, depth int)
 		introsort = func(low, high, depth int) {
 			size := high - low + 1
-			if size <= 1 {
+			if size <= 0 {
+				return
+			}
+			if size == 1 {
+				tracer.MarkSorted(low, fmt.Sprintf("arr[%d] is sorted", low))
 				return
 			}
 			if size <= 16 {
 				insertionSortRange(tracer, low, high)
+				for i := low; i <= high; i++ {
+					tracer.MarkSorted(i, fmt.Sprintf("arr[%d] sorted by insertion sort", i))
+				}
 				return
 			}
 			if depth <= 0 {
 				heapSortRange(tracer, low, high)
+				for i := low; i <= high; i++ {
+					tracer.MarkSorted(i, fmt.Sprintf("arr[%d] sorted by heapsort fallback", i))
+				}
 				return
 			}
 
 			p := partitionIntro(tracer, low, high)
+			tracer.MarkSorted(p, fmt.Sprintf("Pivot arr[%d] is in its final sorted position", p))
 			introsort(low, p-1, depth-1)
 			introsort(p+1, high, depth-1)
 		}
 
 		introsort(0, n-1, maxDepth)
-	}
-
-	for i := range arr {
-		tracer.MarkSorted(i, fmt.Sprintf("arr[%d] is sorted", i))
+	} else if n == 1 {
+		tracer.MarkSorted(0, "arr[0] is sorted")
 	}
 
 	executionTime := time.Since(startTime).Microseconds()

@@ -13,12 +13,12 @@ func (s *PigeonholeSorter) Meta() AlgorithmMeta {
 		ID:              "pigeonhole",
 		Name:            "Pigeonhole Sort",
 		Category:        "distribution",
-		BestTime:        "O(n + Range)",
-		AverageTime:     "O(n + Range)",
-		WorstTime:       "O(n + Range)",
-		SpaceComplexity: "O(Range)",
+		BestTime:        "O(n + k)",
+		AverageTime:     "O(n + k)",
+		WorstTime:       "O(n + k)",
+		SpaceComplexity: "O(k)",
 		Stable:          true,
-		Description:     "A non-comparison distribution sorting algorithm suitable for keys where the number of elements and possible key values are roughly equal.",
+		Description:     "A non-comparison distribution sorting algorithm where each key is moved directly to its corresponding hole (bucket). In asymptotic notation, k is the range of key values (max - min + 1).",
 	}
 }
 
