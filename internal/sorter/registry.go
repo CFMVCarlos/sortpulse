@@ -26,6 +26,13 @@ func init() {
 	Register(&OddEvenSorter{})
 	Register(&PancakeSorter{})
 	Register(&CycleSorter{})
+	Register(&ThreeWayMergeSorter{})
+	Register(&BucketSorter{})
+	Register(&PigeonholeSorter{})
+	Register(&IntroSorter{})
+	Register(&TimSorter{})
+	Register(&BitonicSorter{})
+	Register(&BogoSorter{})
 }
 
 // Register adds a Sorter to the registry.
