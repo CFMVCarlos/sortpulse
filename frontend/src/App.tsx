@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import './App.css';
 import type { AlgorithmMeta, Trace } from './types/sort';
 import { SPEED_LEVELS } from './types/sort';
 import { fetchAlgorithms, fetchSortTrace } from './api/client';
 import { ControlBar } from './components/ControlBar';
-import { CanvasVisualizer } from './components/CanvasVisualizer';
+import { VisualizerPanel } from './components/VisualizerPanel';
 import { AlgorithmInfoCard } from './components/AlgorithmInfoCard';
 import type { BarState } from './components/CanvasVisualizer';
 import { audioEngine } from './utils/audio';
+import { AlertCircle } from 'lucide-react';
 
 function App() {
   const [algorithms, setAlgorithms] = useState<AlgorithmMeta[]>([]);
@@ -115,7 +115,6 @@ function App() {
     generateArray('random', 50);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
 
   const handleArraySizeChange = (size: number) => {
     setArraySize(size);
@@ -322,82 +321,81 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>SortPulse</h1>
-      </header>
-
+    <div className="min-h-screen w-full bg-slate-50/50 text-slate-900 flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8 font-sans antialiased">
       {errorMessage && (
-        <div role="alert" style={{
-          backgroundColor: '#fee2e2',
-          borderBottom: '1px solid #f87171',
-          color: '#991b1b',
-          padding: '0.75rem 1rem',
-          textAlign: 'center',
-          fontWeight: 500,
-          fontSize: '0.9rem'
-        }}>
-          {errorMessage}
+        <div
+          role="alert"
+          className="w-full max-w-7xl mb-4 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800 shadow-xs"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+          <span>{errorMessage}</span>
         </div>
       )}
 
-      <ControlBar
-        algorithms={algorithms}
-        selectedAlgorithm={selectedAlgorithm}
-        onAlgorithmChange={(id) => {
-          setSelectedAlgorithm(id);
-          setTrace(null);
-          setCurrentStepIndex(0);
-          setIsPlaying(false);
-          // Restore to initial unsorted state so switching algorithms immediately restores the selected distribution
-          const restoreArr = baseArrayRef.current.length > 0 ? [...baseArrayRef.current] : (trace ? [...trace.initial_array] : currentArray);
-          setCurrentArray([...restoreArr]);
-          setBarStates(new Array(restoreArr.length).fill('default'));
-          setCurrentComparisons(0);
-          setCurrentSwaps(0);
-          cachedStateRef.current = {
-            trace: null,
-            stepIndex: -1,
-            array: [],
-            sortedIndices: new Set<number>(),
-            comparisons: 0,
-            swaps: 0,
-          };
-        }}
-        arraySize={arraySize}
-        onArraySizeChange={handleArraySizeChange}
-        onGenerateArray={(type) => generateArray(type, arraySize)}
-        selectedArrayType={selectedArrayType}
-        isPlaying={isPlaying}
-        onTogglePlay={togglePlay}
-        speedLevel={speedLevel}
-        onSpeedLevelChange={setSpeedLevel}
-        currentStepIndex={currentStepIndex}
-        totalSteps={trace ? trace.steps.length : 0}
-        onScrub={handleScrub}
-        onStepBackward={handleStepBackward}
-        onStepForward={handleStepForward}
-        isMuted={isMuted}
-        onToggleMute={toggleMute}
-      />
+      <main className="w-full max-w-7xl flex flex-col gap-6">
+        {/* Upper section: 2 columns (Visualizer on top on mobile, Controls on left on desktop) */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
+          {/* Visualizer ("bars") Column with embedded timeline scrubber and stats */}
+          <div className="order-1 lg:order-2 lg:col-span-8 xl:col-span-8 flex">
+            <VisualizerPanel
+              array={currentArray}
+              barStates={barStates}
+              trace={trace}
+              currentStepIndex={currentStepIndex}
+              currentComparisons={currentComparisons}
+              currentSwaps={currentSwaps}
+              isPlaying={isPlaying}
+              onScrub={handleScrub}
+              onStepBackward={handleStepBackward}
+              onStepForward={handleStepForward}
+              onTogglePlay={togglePlay}
+            />
+          </div>
 
-      <main className="app-main">
-        <section className="visualizer-section">
-          <CanvasVisualizer
-            array={currentArray}
-            barStates={barStates}
-            height={360}
-          />
-          <div className="metrics-panel" aria-label="Sorting Metrics">
-            <span className="metric-item">Step: <span className="metric-value">{trace ? `${currentStepIndex} / ${trace.steps.length}` : '0 / 0'}</span></span>
-            <span className="metric-item">Comparisons: <span className="metric-value">{trace ? currentComparisons : 0}</span></span>
-            <span className="metric-item">{trace && trace.swaps === 0 && trace.steps.some(s => s.type === 'overwrite') ? 'Writes' : 'Swaps'}: <span className="metric-value">{trace ? currentSwaps : 0}</span></span>
+          {/* Controls Column */}
+          <div className="order-2 lg:order-1 lg:col-span-4 xl:col-span-4 flex">
+            <ControlBar
+              algorithms={algorithms}
+              selectedAlgorithm={selectedAlgorithm}
+              onAlgorithmChange={(id) => {
+                setSelectedAlgorithm(id);
+                setTrace(null);
+                setCurrentStepIndex(0);
+                setIsPlaying(false);
+                const restoreArr = baseArrayRef.current.length > 0 ? [...baseArrayRef.current] : (trace ? [...trace.initial_array] : currentArray);
+                setCurrentArray([...restoreArr]);
+                setBarStates(new Array(restoreArr.length).fill('default'));
+                setCurrentComparisons(0);
+                setCurrentSwaps(0);
+                cachedStateRef.current = {
+                  trace: null,
+                  stepIndex: -1,
+                  array: [],
+                  sortedIndices: new Set<number>(),
+                  comparisons: 0,
+                  swaps: 0,
+                };
+              }}
+              arraySize={arraySize}
+              onArraySizeChange={handleArraySizeChange}
+              onGenerateArray={(type) => generateArray(type, arraySize)}
+              selectedArrayType={selectedArrayType}
+              isPlaying={isPlaying}
+              onTogglePlay={togglePlay}
+              speedLevel={speedLevel}
+              onSpeedLevelChange={setSpeedLevel}
+              isMuted={isMuted}
+              onToggleMute={toggleMute}
+            />
           </div>
         </section>
 
-        <aside className="sidebar-section">
-          <AlgorithmInfoCard algorithm={algorithms.find(a => a.id === selectedAlgorithm) || null} />
-        </aside>
+        {/* Lower section: 100% full width Algorithm Description & Complexities Card */}
+        <section className="w-full">
+          <AlgorithmInfoCard
+            algorithm={algorithms.find((a) => a.id === selectedAlgorithm) || null}
+          />
+        </section>
       </main>
     </div>
   );

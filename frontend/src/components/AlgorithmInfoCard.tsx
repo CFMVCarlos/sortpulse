@@ -1,67 +1,117 @@
 import React from 'react';
 import type { AlgorithmMeta } from '../types/sort';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Separator } from './ui/separator';
+import { BookOpen, Clock, HardDrive, ShieldCheck, ShieldAlert } from 'lucide-react';
 
 interface AlgorithmInfoCardProps {
     algorithm: AlgorithmMeta | null;
 }
 
-const getCategoryBadgeStyle = (category: string) => {
-    switch (category) {
-        case 'comparison':
-            return { backgroundColor: '#e0f2fe', color: '#0369a1' };
-        case 'distribution':
-            return { backgroundColor: '#f3e8ff', color: '#6b21a8' };
-        case 'hybrid':
-            return { backgroundColor: '#dcfce7', color: '#15803d' };
-        default:
-            return { backgroundColor: '#f1f5f9', color: '#475569' };
-    }
-};
-
 export const AlgorithmInfoCard: React.FC<AlgorithmInfoCardProps> = ({ algorithm }) => {
     if (!algorithm) return null;
 
     return (
-        <article className="algo-card" aria-labelledby="algo-title">
-            <header className="algo-card-header">
-                <h2 id="algo-title" className="algo-card-title">{algorithm.name}</h2>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span
-                        className="badge"
-                        style={{ ...getCategoryBadgeStyle(algorithm.category), textTransform: 'capitalize' }}
-                    >
-                        {algorithm.category}
-                    </span>
-                    <span className={`badge ${algorithm.stable ? 'badge-stable' : 'badge-unstable'}`}>
-                        {algorithm.stable ? 'Stable' : 'Unstable'}
-                    </span>
-                </div>
-            </header>
+        <Card className="w-full border-slate-200/90 shadow-sm bg-white overflow-hidden">
+            <CardHeader className="p-6 pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-lg bg-[#f3f0ff] border border-[#ddd6fe] flex items-center justify-center text-[#5b42e6]">
+                            <BookOpen className="h-4 w-4" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-lg font-bold text-slate-900 tracking-tight">
+                                {algorithm.name}
+                            </CardTitle>
+                            <p className="text-xs text-slate-400 capitalize">
+                                {algorithm.category} algorithm
+                            </p>
+                        </div>
+                    </div>
 
-            <p style={{ margin: '0.5rem 0', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                {algorithm.description}
-            </p>
-
-            <div className="algo-complexities" aria-label="Algorithmic Complexities">
-                <div>
-                    <strong style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                        Time Complexity
-                    </strong>
-                    <ul style={{ margin: '0.4rem 0 0', paddingLeft: '1.25rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                        <li>Best: <code>{algorithm.best_time}</code></li>
-                        <li>Average: <code>{algorithm.average_time}</code></li>
-                        <li>Worst: <code>{algorithm.worst_time}</code></li>
-                    </ul>
+                    <div className="flex items-center gap-2">
+                        <Badge variant="accent" className="capitalize text-xs font-medium">
+                            {algorithm.category}
+                        </Badge>
+                        {algorithm.stable ? (
+                            <Badge variant="success" className="flex items-center gap-1 text-xs font-medium">
+                                <ShieldCheck className="h-3 w-3" />
+                                Stable
+                            </Badge>
+                        ) : (
+                            <Badge variant="secondary" className="flex items-center gap-1 text-xs font-medium text-slate-600">
+                                <ShieldAlert className="h-3 w-3 text-slate-400" />
+                                Unstable
+                            </Badge>
+                        )}
+                    </div>
                 </div>
-                <div>
-                    <strong style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                        Space Complexity
-                    </strong>
-                    <p style={{ margin: '0.4rem 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                        Auxiliary Space: <code>{algorithm.space_complexity}</code>
+            </CardHeader>
+
+            <Separator />
+
+            <CardContent className="p-6 flex flex-col lg:flex-row gap-6">
+                {/* Method Description */}
+                <div className="flex-1 flex flex-col justify-start">
+                    <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                        Overview & Behavior
+                    </h4>
+                    <p className="text-sm text-slate-600 leading-relaxed font-normal">
+                        {algorithm.description}
                     </p>
                 </div>
-            </div>
-        </article>
+
+                {/* Complexities Grid */}
+                <div className="lg:w-[480px] grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0">
+                    {/* Time Complexity Card */}
+                    <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 flex flex-col justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-2">
+                            <Clock className="h-3.5 w-3.5 text-[#5b42e6]" />
+                            <span>Time Complexity</span>
+                        </div>
+                        <div className="space-y-1.5 text-xs text-slate-600">
+                            <div className="flex items-center justify-between">
+                                <span className="text-slate-400">Best:</span>
+                                <code className="font-mono font-semibold bg-white px-2 py-0.5 rounded border border-slate-200 text-[#4f36db]">
+                                    {algorithm.best_time}
+                                </code>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-slate-400">Average:</span>
+                                <code className="font-mono font-semibold bg-white px-2 py-0.5 rounded border border-slate-200 text-[#4f36db]">
+                                    {algorithm.average_time}
+                                </code>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-slate-400">Worst:</span>
+                                <code className="font-mono font-semibold bg-white px-2 py-0.5 rounded border border-slate-200 text-[#4f36db]">
+                                    {algorithm.worst_time}
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Space Complexity Card */}
+                    <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 flex flex-col justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-2">
+                            <HardDrive className="h-3.5 w-3.5 text-[#5b42e6]" />
+                            <span>Space Complexity</span>
+                        </div>
+                        <div className="flex flex-col justify-center h-full gap-2 text-xs text-slate-600 pt-1">
+                            <div className="flex items-center justify-between">
+                                <span className="text-slate-400">Auxiliary Space:</span>
+                                <code className="font-mono font-semibold bg-white px-2 py-0.5 rounded border border-slate-200 text-[#4f36db]">
+                                    {algorithm.space_complexity}
+                                </code>
+                            </div>
+                            <p className="text-[11px] text-slate-400 leading-tight">
+                                Memory required beyond the input array storage.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
     );
 };

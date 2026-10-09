@@ -9,17 +9,17 @@ interface CanvasVisualizerProps {
 }
 
 const STATE_COLORS: Record<BarState, string> = {
-    default: '#3b82f6',    // vibrant blue
-    comparing: '#f59e0b',  // amber yellow
-    swapping: '#ef4444',   // rose red
-    sorted: '#10b981',     // emerald green
-    pivot: '#8b5cf6',      // violet purple
+    default: '#5b42e6',    // slightly more purple (subtle purpleish-blue)
+    comparing: '#f59e0b',  // warm amber for comparison
+    swapping: '#f43f5e',   // rose red for swap/overwrite
+    sorted: '#10b981',     // vibrant emerald for sorted confirmation
+    pivot: '#8b5cf6',      // violet for pivot
 };
 
 export const CanvasVisualizer: React.FC<CanvasVisualizerProps> = ({
     array,
     barStates,
-    height = 360,
+    height = 380,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -32,12 +32,11 @@ export const CanvasVisualizer: React.FC<CanvasVisualizerProps> = ({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Synchronize internal bitmap dimensions with layout width
-        if (canvas.width !== w) {
-            canvas.width = w;
-        }
-        if (canvas.height !== height) {
-            canvas.height = height;
+        const dpr = window.devicePixelRatio || 1;
+        if (canvas.width !== w * dpr || canvas.height !== height * dpr) {
+            canvas.width = w * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
         }
 
         ctx.clearRect(0, 0, w, height);
@@ -47,34 +46,27 @@ export const CanvasVisualizer: React.FC<CanvasVisualizerProps> = ({
         const n = array.length;
         const maxVal = Math.max(...array, 1);
 
-        const spacing = (w * 0.15) / (n + 1);
-        const barWidth = (w * 0.85) / n;
+        const spacing = (w * 0.12) / (n + 1);
+        const barWidth = (w * 0.88) / n;
 
         for (let i = 0; i < n; i++) {
             const val = array[i];
             const state = barStates[i] || 'default';
             const color = STATE_COLORS[state];
 
-            const barHeight = (val / maxVal) * (height * 0.88);
+            const barHeight = (val / maxVal) * (height * 0.9);
             const x = spacing + i * (barWidth + spacing);
             const y = height - barHeight;
 
-            // Draw bar
+            // Draw rounded bar
             ctx.fillStyle = color;
             ctx.beginPath();
-            if (barWidth > 6) {
+            if (barWidth > 4) {
                 const radius = Math.min(4, barWidth / 2);
                 ctx.roundRect(x, y, barWidth, barHeight, [radius, radius, 0, 0]);
                 ctx.fill();
             } else {
                 ctx.fillRect(x, y, barWidth, barHeight);
-            }
-
-            // Add subtle stroke for definition on wider bars
-            if (barWidth > 4) {
-                ctx.strokeStyle = 'rgba(15, 23, 42, 0.15)';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(x, y, barWidth, barHeight);
             }
         }
     }, [array, barStates, height]);
@@ -87,7 +79,7 @@ export const CanvasVisualizer: React.FC<CanvasVisualizerProps> = ({
         return () => cancelAnimationFrame(animationFrameId);
     }, [renderBars]);
 
-    // Responsive container width tracking without triggering component re-render loops
+    // Responsive container width tracking
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
@@ -105,7 +97,6 @@ export const CanvasVisualizer: React.FC<CanvasVisualizerProps> = ({
             }
         };
 
-        // Measure initial container bounds
         const initialRect = container.getBoundingClientRect();
         if (initialRect.width > 0) {
             handleResize(initialRect.width);
@@ -139,11 +130,11 @@ export const CanvasVisualizer: React.FC<CanvasVisualizerProps> = ({
     }, [renderBars]);
 
     return (
-        <div ref={containerRef} className="canvas-wrapper" role="region" aria-label="Sorting Bar Visualizer">
+        <div ref={containerRef} className="w-full relative overflow-hidden flex items-end justify-center" role="region" aria-label="Sorting Bar Visualizer">
             <canvas
                 ref={canvasRef}
                 style={{ width: '100%', height: `${height}px` }}
-                className="sort-canvas"
+                className="block w-full"
                 aria-label={`Visual representation of ${array.length} numbers undergoing sort`}
             />
         </div>
