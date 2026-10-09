@@ -9,6 +9,7 @@ interface ControlBarProps {
     arraySize: number;
     onArraySizeChange: (size: number) => void;
     onGenerateArray: (type: 'random' | 'reverse' | 'nearly_sorted') => void;
+    selectedArrayType?: 'random' | 'reverse' | 'nearly_sorted';
     isPlaying: boolean;
     onTogglePlay: () => void;
     speedLevel: number;
@@ -37,6 +38,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
     arraySize,
     onArraySizeChange,
     onGenerateArray,
+    selectedArrayType,
     isPlaying,
     onTogglePlay,
     speedLevel,
@@ -124,7 +126,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 <div className="control-group" role="group" aria-label="Array generators">
                     <button
                         type="button"
-                        className="btn"
+                        className={`btn ${selectedArrayType === 'random' ? 'btn-active' : ''}`}
                         onClick={() => onGenerateArray('random')}
                         disabled={isPlaying}
                         aria-label="Generate random array"
@@ -133,7 +135,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                     </button>
                     <button
                         type="button"
-                        className="btn"
+                        className={`btn ${selectedArrayType === 'reverse' ? 'btn-active' : ''}`}
                         onClick={() => onGenerateArray('reverse')}
                         disabled={isPlaying}
                         aria-label="Generate reverse sorted array"
@@ -142,7 +144,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                     </button>
                     <button
                         type="button"
-                        className="btn"
+                        className={`btn ${selectedArrayType === 'nearly_sorted' ? 'btn-active' : ''}`}
                         onClick={() => onGenerateArray('nearly_sorted')}
                         disabled={isPlaying}
                         aria-label="Generate nearly sorted array"

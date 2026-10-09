@@ -15,8 +15,10 @@ function App() {
 
   // Array state
   const [arraySize, setArraySize] = useState<number>(50);
+  const [selectedArrayType, setSelectedArrayType] = useState<'random' | 'reverse' | 'nearly_sorted'>('random');
   const [currentArray, setCurrentArray] = useState<number[]>([]);
   const [barStates, setBarStates] = useState<BarState[]>([]);
+  const baseArrayRef = useRef<number[]>([]);
 
   // Playback state
   const [trace, setTrace] = useState<Trace | null>(null);
@@ -64,6 +66,7 @@ function App() {
   };
 
   const generateArray = (type: 'random' | 'reverse' | 'nearly_sorted', size: number) => {
+    setSelectedArrayType(type);
     let newArr: number[] = [];
     if (type === 'random') {
       for (let i = 0; i < size; i++) {
@@ -87,6 +90,7 @@ function App() {
     }
 
     maxValRef.current = Math.max(...newArr);
+    baseArrayRef.current = [...newArr];
 
     setCurrentArray(newArr);
     setBarStates(new Array(size).fill('default'));
@@ -115,15 +119,20 @@ function App() {
 
   const handleArraySizeChange = (size: number) => {
     setArraySize(size);
-    generateArray('random', size);
+    generateArray(selectedArrayType, size);
   };
 
   const startSorting = async () => {
     if (!selectedAlgorithm) return;
 
+    // Always sort from the base unsorted array so re-running or switching algorithms doesn't sort already-sorted data
+    const inputArr = baseArrayRef.current.length > 0 ? [...baseArrayRef.current] : [...currentArray];
+    setCurrentArray([...inputArr]);
+    setBarStates(new Array(inputArr.length).fill('default'));
+
     try {
       setErrorMessage(null);
-      const newTrace = await fetchSortTrace(selectedAlgorithm, currentArray);
+      const newTrace = await fetchSortTrace(selectedAlgorithm, inputArr);
       setTrace(newTrace);
       setCurrentStepIndex(0);
       setCurrentComparisons(0);
@@ -340,11 +349,10 @@ function App() {
           setTrace(null);
           setCurrentStepIndex(0);
           setIsPlaying(false);
-          // Restore to initial state if a trace exists
-          if (trace) {
-              setCurrentArray([...trace.initial_array]);
-              setBarStates(new Array(trace.initial_array.length).fill('default'));
-          }
+          // Restore to initial unsorted state so switching algorithms immediately restores the selected distribution
+          const restoreArr = baseArrayRef.current.length > 0 ? [...baseArrayRef.current] : (trace ? [...trace.initial_array] : currentArray);
+          setCurrentArray([...restoreArr]);
+          setBarStates(new Array(restoreArr.length).fill('default'));
           setCurrentComparisons(0);
           setCurrentSwaps(0);
           cachedStateRef.current = {
@@ -359,6 +367,7 @@ function App() {
         arraySize={arraySize}
         onArraySizeChange={handleArraySizeChange}
         onGenerateArray={(type) => generateArray(type, arraySize)}
+        selectedArrayType={selectedArrayType}
         isPlaying={isPlaying}
         onTogglePlay={togglePlay}
         speedLevel={speedLevel}
