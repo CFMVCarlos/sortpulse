@@ -18,7 +18,7 @@ func (s *HeapSorter) Meta() AlgorithmMeta {
 		WorstTime:       "O(n log n)",
 		SpaceComplexity: "O(1)",
 		Stable:          false,
-		Description:     "Comparison-based sorting technique based on Binary Heap data structure. It is similar to selection sort where we first find the maximum element and place the maximum element at the end.",
+		Description:     "A comparison-based sorting algorithm that organizes elements into a binary max-heap and repeatedly extracts the root maximum element to the end of the array.",
 	}
 }
 

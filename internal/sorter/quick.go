@@ -18,7 +18,7 @@ func (s *QuickSorter) Meta() AlgorithmMeta {
 		WorstTime:       "O(n²)",
 		SpaceComplexity: "O(log n)",
 		Stable:          false,
-		Description:     "Picks an element as pivot and partitions the given array around the picked pivot by placing the pivot in its correct position.",
+		Description:     "A divide-and-conquer comparison algorithm that selects a pivot, partitions the array so smaller elements precede larger ones, and recursively sorts each partition.",
 	}
 }
 

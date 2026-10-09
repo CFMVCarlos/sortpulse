@@ -18,7 +18,7 @@ func (s *MergeSorter) Meta() AlgorithmMeta {
 		WorstTime:       "O(n log n)",
 		SpaceComplexity: "O(n)",
 		Stable:          true,
-		Description:     "Divides input array into two halves, calls itself for the two halves, and then merges the two sorted halves.",
+		Description:     "A stable divide-and-conquer comparison algorithm that recursively splits the array into two halves, sorts each half, and merges the sorted halves.",
 	}
 }
 

@@ -17,7 +17,7 @@ func (s *CountingSorter) Meta() AlgorithmMeta {
 		WorstTime:       "O(n + k)",
 		SpaceComplexity: "O(k)",
 		Stable:          true,
-		Description:     "An integer sorting algorithm that operates by counting the number of objects that possess distinct key values, and applying prefix sum to find the position of each key.",
+		Description:     "A non-comparison distribution sorting algorithm that counts occurrences of each distinct integer key within range k (max - min + 1) to determine output positions.",
 	}
 }
 

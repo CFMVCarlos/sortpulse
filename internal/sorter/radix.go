@@ -12,12 +12,12 @@ func (s *RadixSorter) Meta() AlgorithmMeta {
 		ID:              "radix",
 		Name:            "Radix Sort",
 		Category:        "distribution",
-		BestTime:        "O(nk)",
-		AverageTime:     "O(nk)",
-		WorstTime:       "O(nk)",
+		BestTime:        "O(d · (n + k))",
+		AverageTime:     "O(d · (n + k))",
+		WorstTime:       "O(d · (n + k))",
 		SpaceComplexity: "O(n + k)",
 		Stable:          true,
-		Description:     "Sorts the elements by processing individual digits. It sorts the elements digit by digit, from least significant to most significant.",
+		Description:     "A non-comparison distribution algorithm that sorts integers digit by digit, from least significant to most significant digit, using a stable counting sort subroutine.",
 	}
 }
 

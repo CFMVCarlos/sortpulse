@@ -18,7 +18,7 @@ func (s *CombSorter) Meta() AlgorithmMeta {
 		WorstTime:       "O(n²)",
 		SpaceComplexity: "O(1)",
 		Stable:          false,
-		Description:     "An improvement on bubble sort that eliminates small values near the end (turtles) by comparing elements separated by a gap that shrinks by a factor of 1.3 each pass.",
+		Description:     "An optimization of Bubble Sort that eliminates small values near the end of the array (turtles) by comparing elements across a gap that shrinks by a factor of 1.3 each pass.",
 	}
 }
 

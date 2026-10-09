@@ -18,7 +18,7 @@ func (s *SelectionSorter) Meta() AlgorithmMeta {
 		WorstTime:       "O(n²)",
 		SpaceComplexity: "O(1)",
 		Stable:          false,
-		Description:     "Divides the input list into two parts: a sorted sublist and an unsorted sublist. Repeatedly finds the minimum element from the unsorted sublist and moves it to the end of the sorted sublist.",
+		Description:     "A comparison-based in-place algorithm that repeatedly finds the minimum element from the unsorted sublist and moves it to the end of the sorted sublist.",
 	}
 }
 
