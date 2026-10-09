@@ -63,4 +63,6 @@ export const SPEED_LEVELS: readonly SpeedLevel[] = [
     { multiplier: '256x', delay: 16, batch: 16 },
     { multiplier: '512x', delay: 16, batch: 32 },
     { multiplier: '1024x', delay: 16, batch: 64 },
+    { multiplier: '2048x', delay: 16, batch: 128 },
+    { multiplier: '4096x', delay: 16, batch: 256 },
 ] as const;

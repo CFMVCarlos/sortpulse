@@ -31,6 +31,17 @@ function App() {
   // Ref for timer to clear it
   const timerRef = useRef<number | null>(null);
   const maxValRef = useRef<number>(100);
+  const cachedStateRef = useRef<{
+    trace: Trace | null;
+    stepIndex: number;
+    array: number[];
+    sortedIndices: Set<number>;
+  }>({
+    trace: null,
+    stepIndex: -1,
+    array: [],
+    sortedIndices: new Set<number>(),
+  });
 
   const loadAlgorithms = async () => {
     try {
@@ -76,6 +87,12 @@ function App() {
     setTrace(null);
     setCurrentStepIndex(0);
     setIsPlaying(false);
+    cachedStateRef.current = {
+      trace: null,
+      stepIndex: -1,
+      array: [],
+      sortedIndices: new Set<number>(),
+    };
   };
 
   // Initial load
@@ -99,6 +116,12 @@ function App() {
       const newTrace = await fetchSortTrace(selectedAlgorithm, currentArray);
       setTrace(newTrace);
       setCurrentStepIndex(0);
+      cachedStateRef.current = {
+        trace: null,
+        stepIndex: -1,
+        array: [],
+        sortedIndices: new Set<number>(),
+      };
       setIsPlaying(true);
     } catch (error) {
       console.error("Failed to fetch sort trace:", error);
@@ -146,25 +169,34 @@ function App() {
     }
 
     const rebuildState = () => {
-      let tempArray = [...trace.initial_array];
+      let tempArray: number[];
+      const sortedIndices = new Set<number>();
+      let startStep = 0;
+
+      const cache = cachedStateRef.current;
+      if (
+        cache.trace === trace &&
+        cache.stepIndex >= 0 &&
+        cache.stepIndex <= currentStepIndex
+      ) {
+        tempArray = [...cache.array];
+        cache.sortedIndices.forEach((idx) => sortedIndices.add(idx));
+        startStep = cache.stepIndex + 1;
+      } else {
+        tempArray = [...trace.initial_array];
+        startStep = 0;
+      }
+
       let tempStates = new Array<BarState>(tempArray.length).fill('default');
 
-      // Keep track of elements explicitly marked sorted
-      const sortedIndices = new Set<number>();
-
-      // Rebuild up to current step
-      for (let i = 0; i <= currentStepIndex; i++) {
+      // Rebuild from startStep up to currentStepIndex
+      for (let i = startStep; i <= currentStepIndex; i++) {
         if (i >= trace.steps.length) break;
         const s = trace.steps[i];
 
-        // Reset temporary states for this step
-        if (i === currentStepIndex) {
-          tempStates = tempStates.map((_, idx) => sortedIndices.has(idx) ? 'sorted' : 'default');
-        }
-
         if (s.type === 'compare') {
           if (i === currentStepIndex) {
-            s.indices.forEach(idx => tempStates[idx] = 'comparing');
+            s.indices.forEach((idx) => (tempStates[idx] = 'comparing'));
           }
         } else if (s.type === 'swap') {
           const [idx1, idx2] = s.indices;
@@ -176,31 +208,39 @@ function App() {
         } else if (s.type === 'overwrite') {
           const idx = s.indices[0];
           if (s.value !== undefined) {
-             tempArray[idx] = s.value;
+            tempArray[idx] = s.value;
           }
           if (i === currentStepIndex) {
-            tempStates[idx] = 'swapping'; // Use swapping color for overwrites to highlight them
+            tempStates[idx] = 'swapping';
           }
         } else if (s.type === 'mark_sorted') {
-          s.indices.forEach(idx => {
+          s.indices.forEach((idx) => {
             sortedIndices.add(idx);
             if (i === currentStepIndex) {
-               tempStates[idx] = 'sorted';
+              tempStates[idx] = 'sorted';
             }
           });
         } else if (s.type === 'pivot') {
           if (i === currentStepIndex) {
-            s.indices.forEach(idx => tempStates[idx] = 'pivot');
+            s.indices.forEach((idx) => (tempStates[idx] = 'pivot'));
           }
         }
       }
 
       // Ensure all previously marked sorted remain green
-      sortedIndices.forEach(idx => {
-         if (tempStates[idx] === 'default') {
-             tempStates[idx] = 'sorted';
-         }
+      sortedIndices.forEach((idx) => {
+        if (tempStates[idx] === 'default') {
+          tempStates[idx] = 'sorted';
+        }
       });
+
+      // Update cache for next tick
+      cachedStateRef.current = {
+        trace,
+        stepIndex: currentStepIndex,
+        array: [...tempArray],
+        sortedIndices: new Set(sortedIndices),
+      };
 
       return { tempArray, tempStates };
     };
@@ -277,6 +317,12 @@ function App() {
               setCurrentArray([...trace.initial_array]);
               setBarStates(new Array(trace.initial_array.length).fill('default'));
           }
+          cachedStateRef.current = {
+            trace: null,
+            stepIndex: -1,
+            array: [],
+            sortedIndices: new Set<number>(),
+          };
         }}
         arraySize={arraySize}
         onArraySizeChange={handleArraySizeChange}
