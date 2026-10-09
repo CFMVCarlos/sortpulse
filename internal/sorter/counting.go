@@ -27,10 +27,7 @@ func (s *CountingSorter) Sort(input []int) Trace {
 	arr := make([]int, len(input))
 	copy(arr, input)
 
-	tracer := &Tracer{
-		arr:   arr,
-		steps: []Step{},
-	}
+	tracer := NewTracer(arr, len(arr)*4)
 
 	if len(arr) > 0 {
 		min, max := arr[0], arr[0]

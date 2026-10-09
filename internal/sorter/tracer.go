@@ -8,6 +8,22 @@ type Tracer struct {
 	swaps int
 }
 
+// NewTracer creates an initialized Tracer with a pre-allocated capacity hint
+// for the steps slice, eliminating frequent dynamic memory reallocations during sort tracing.
+func NewTracer(arr []int, capacityHint int) *Tracer {
+	if capacityHint <= 0 {
+		n := len(arr)
+		capacityHint = n * 8
+		if capacityHint < 64 {
+			capacityHint = 64
+		}
+	}
+	return &Tracer{
+		arr:   arr,
+		steps: make([]Step, 0, capacityHint),
+	}
+}
+
 // Compare records a comparison operation between arr[i] and arr[j], increments comparisons, and returns true if arr[i] > arr[j].
 func (t *Tracer) Compare(i, j int, desc string) bool {
 	t.comps++

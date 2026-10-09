@@ -29,10 +29,7 @@ func (s *BubbleSorter) Sort(input []int) Trace {
 	arr := make([]int, len(input))
 	copy(arr, input)
 
-	tracer := &Tracer{
-		arr:   arr,
-		steps: []Step{},
-	}
+	tracer := NewTracer(arr, len(arr)*len(arr)/2)
 
 	n := len(arr)
 	for i := range n {

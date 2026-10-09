@@ -30,10 +30,7 @@ func (s *TimSorter) Sort(input []int) Trace {
 	arr := make([]int, len(input))
 	copy(arr, input)
 
-	tracer := &Tracer{
-		arr:   arr,
-		steps: []Step{},
-	}
+	tracer := NewTracer(arr, len(arr)*10)
 
 	n := len(arr)
 	if n > 1 {

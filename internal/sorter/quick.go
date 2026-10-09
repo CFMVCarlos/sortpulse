@@ -28,10 +28,7 @@ func (s *QuickSorter) Sort(input []int) Trace {
 	arr := make([]int, len(input))
 	copy(arr, input)
 
-	tracer := &Tracer{
-		arr:   arr,
-		steps: []Step{},
-	}
+	tracer := NewTracer(arr, len(arr)*10)
 
 	var quicksort func(low, high int)
 	quicksort = func(low, high int) {

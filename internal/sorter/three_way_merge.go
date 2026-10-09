@@ -28,10 +28,7 @@ func (s *ThreeWayMergeSorter) Sort(input []int) Trace {
 	arr := make([]int, len(input))
 	copy(arr, input)
 
-	tracer := &Tracer{
-		arr:   arr,
-		steps: []Step{},
-	}
+	tracer := NewTracer(arr, len(arr)*10)
 
 	var sort3Way func(l, r int)
 	sort3Way = func(l, r int) {
