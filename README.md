@@ -13,6 +13,14 @@
 
 *An algorithmic observatory and interactive playground built for [Boot.dev](https://boot.dev).*
 
+<br />
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/sortpulse-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/images/sortpulse-light.png">
+  <img alt="SortPulse Interactive Algorithm Visualizer" src="docs/images/sortpulse-dark.png" width="100%" />
+</picture>
+
 </div>
 
 ---
@@ -26,10 +34,11 @@
   - **Comparison Sorts**: Bubble Sort, Cocktail Shaker Sort, Comb Sort, Cycle Sort, Gnome Sort, Heap Sort, Insertion Sort, Merge Sort, Odd-Even Sort, Pancake Sort, Quicksort, Selection Sort, Shell Sort, 3-Way Merge Sort, Bitonic Sort, and Bogo Sort.
   - **Distribution Sorts**: Counting Sort, Radix Sort (LSD), Bucket Sort, and Pigeonhole Sort.
   - **Hybrid Sorts**: TimSort (Python/Java standard) and IntroSort (C++ `std::sort` standard).
+- 🌓 **Dynamic Light & Dark Themes**: Pixel-perfect light and dark themes with system preference detection and persistent localStorage toggle.
 - ⏯️ **Precision Playback & Scrubbing**: Play, pause, speed adjustment (1x to 50x), bidirectional discrete single-stepping, and timeline scrubbing across thousands of steps.
 - 🎨 **Hardware-Accelerated 60 FPS Canvas**: Smooth, responsive rendering with intuitive visual state indicators for active comparisons, swaps, pivots, and sorted elements.
 - 🎵 **Web Audio API Tone Synthesizer**: Dynamic pitch mapping proportional to array element values—listen to sorting patterns, partitions, and convergence in real time.
-- 📊 **Real-Time Pedagogical Metrics**: Instantaneous tracking of comparison counts, swap counts, execution latency (in microseconds), and asymptotic Big-O badges.
+- 📊 **Real-Time Pedagogical Metrics**: Instantaneous tracking of comparison counts, swap/overwrite counts, compute latency (in microseconds), and asymptotic Big-O badges.
 - 📦 **Single-Binary Zero-Dependency Deployment**: Production builds bundle the compiled React application directly into the Go executable via `//go:embed`.
 
 ---
@@ -40,11 +49,12 @@ The HTML5 Canvas visualizer highlights element states at each discrete step usin
 
 | State | Color | Description |
 | :--- | :--- | :--- |
-| **Default** | `🔵 Vibrant Blue (#3B82F6)` | Resting array element not actively participating in the current operation. |
+| **Default** | `🟣 Royal Violet (#5B42E6)` | Resting array element not actively participating in the current operation. |
 | **Comparing** | `🟡 Amber Yellow (#F59E0B)` | Elements currently being evaluated against each other by the algorithm. |
-| **Swapping / Overwrite** | `🔴 Rose Red (#EF4444)` | Elements actively exchanging positions or being overwritten in-place. |
+| **Swapping / Overwrite** | `🔴 Rose Red (#F43F5E)` | Elements actively exchanging positions or being overwritten in-place. |
 | **Pivot** | `🟣 Violet Purple (#8B5CF6)` | Partition pivot element selected for divide-and-conquer splitting. |
 | **Sorted** | `🟢 Emerald Green (#10B981)` | Element confirmed to have reached its definitive, permanent sorted index. |
+| **Unsorted / Limit Exceeded** | `🔴 Crimson Red (#EF4444)` | Elements remaining unsorted after reaching execution safety limits (e.g., Bogo Sort). |
 
 ---
 
