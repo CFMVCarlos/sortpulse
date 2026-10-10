@@ -1,0 +1,1112 @@
+diff --git a/cmd/server/main.go b/cmd/server/main.go
+index 7c69e01..cbe27a5 100644
+--- a/cmd/server/main.go
++++ b/cmd/server/main.go
+@@ -60,8 +60,8 @@ func main() {
+ 		http.FileServer(http.FS(distFS)).ServeHTTP(w, r)
+ 	})
+ 
+-	// Wrap mux with CORS middleware
+-	handler := api.WithCORS(mux)
++	// Wrap mux with middlewares (Recovery -> CORS -> mux)
++	handler := api.WithRecovery(api.WithCORS(mux))
+ 
+ 	addr := fmt.Sprintf(":%d", *port)
+ 	log.Printf("Starting server on %s", addr)
+diff --git a/frontend/package-lock.json b/frontend/package-lock.json
+index b4a09f3..675d0ab 100644
+--- a/frontend/package-lock.json
++++ b/frontend/package-lock.json
+@@ -16,7 +16,8 @@
+         "lucide-react": "^1.54.0",
+         "react": "^19.2.8",
+         "react-dom": "^19.2.8",
+-        "tailwind-merge": "^3.7.0"
++        "tailwind-merge": "^3.7.0",
++        "zod": "^4.6.5"
+       },
+       "devDependencies": {
+         "@tailwindcss/vite": "^4.3.3",
+@@ -2787,6 +2788,15 @@
+           "optional": true
+         }
+       }
++    },
++    "node_modules/zod": {
++      "version": "4.6.5",
++      "resolved": "https://registry.npmjs.org/zod/-/zod-4.6.5.tgz",
++      "integrity": "sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==",
++      "license": "MIT",
++      "funding": {
++        "url": "https://github.com/sponsors/colinhacks"
++      }
+     }
+   }
+ }
+diff --git a/frontend/package.json b/frontend/package.json
+index f5d9578..2c81879 100644
+--- a/frontend/package.json
++++ b/frontend/package.json
+@@ -18,7 +18,8 @@
+     "lucide-react": "^1.54.0",
+     "react": "^19.2.8",
+     "react-dom": "^19.2.8",
+-    "tailwind-merge": "^3.7.0"
++    "tailwind-merge": "^3.7.0",
++    "zod": "^4.6.5"
+   },
+   "devDependencies": {
+     "@tailwindcss/vite": "^4.3.3",
+diff --git a/frontend/src/App.tsx b/frontend/src/App.tsx
+index c6ff474..674a4d9 100644
+--- a/frontend/src/App.tsx
++++ b/frontend/src/App.tsx
+@@ -7,7 +7,9 @@ import { VisualizerPanel } from './components/VisualizerPanel';
+ import { AlgorithmInfoCard } from './components/AlgorithmInfoCard';
+ import type { BarState } from './components/CanvasVisualizer';
+ import { audioEngine } from './utils/audio';
+-import { AlertCircle } from 'lucide-react';
++import { Loader2 } from 'lucide-react';
++import { Toast } from './components/ui/toast';
++import { Skeleton } from './components/ui/skeleton';
+ 
+ function App() {
+   const [algorithms, setAlgorithms] = useState<AlgorithmMeta[]>([]);
+@@ -60,6 +62,8 @@ function App() {
+   // Audio state
+   const [isMuted, setIsMuted] = useState<boolean>(audioEngine.getMuted());
+   const [errorMessage, setErrorMessage] = useState<string | null>(null);
++  const [isGenerating, setIsGenerating] = useState<boolean>(false);
++  const [isLoadingAlgorithms, setIsLoadingAlgorithms] = useState<boolean>(true);
+ 
+   // Ref for timer to clear it
+   const timerRef = useRef<number | null>(null);
+@@ -82,6 +86,7 @@ function App() {
+ 
+   const loadAlgorithms = async () => {
+     try {
++      setIsLoadingAlgorithms(true);
+       setErrorMessage(null);
+       const algos = await fetchAlgorithms();
+       setAlgorithms(algos);
+@@ -91,6 +96,8 @@ function App() {
+     } catch (error) {
+       console.error("Failed to load algorithms:", error);
+       setErrorMessage("Could not connect to the backend server. Ensure the server is running on :8080.");
++    } finally {
++      setIsLoadingAlgorithms(false);
+     }
+   };
+ 
+@@ -159,6 +166,7 @@ function App() {
+     setBarStates(new Array(inputArr.length).fill('default'));
+ 
+     try {
++      setIsGenerating(true);
+       setErrorMessage(null);
+       const newTrace = await fetchSortTrace(selectedAlgorithm, inputArr);
+       setTrace(newTrace);
+@@ -178,6 +186,8 @@ function App() {
+       console.error("Failed to fetch sort trace:", error);
+       setErrorMessage("Failed to calculate sorting steps. Please try again.");
+       setIsPlaying(false);
++    } finally {
++      setIsGenerating(false);
+     }
+   };
+ 
+@@ -372,16 +382,19 @@ function App() {
+   return (
+     <div className="min-h-screen w-full bg-slate-50/50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-start p-3 sm:p-6 lg:p-8 font-sans antialiased transition-colors duration-200">
+       {errorMessage && (
+-        <div
+-          role="alert"
+-          className="w-full max-w-7xl mb-4 flex items-center gap-2.5 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 p-4 text-sm font-medium text-red-800 dark:text-red-300 shadow-xs"
+-        >
+-          <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+-          <span>{errorMessage}</span>
++        <Toast message={errorMessage} onClose={() => setErrorMessage(null)} />
++      )}
++
++      {isGenerating && (
++        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
++          <div className="flex flex-col items-center gap-4 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
++            <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" />
++            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Generating execution trace...</span>
++          </div>
+         </div>
+       )}
+ 
+-      <main className="w-full max-w-7xl flex flex-col gap-5 sm:gap-6">
++      <main className="w-full max-w-7xl flex flex-col gap-5 sm:gap-6 relative">
+         {/* Upper section: 2 columns (Visualizer on top on mobile, Controls on left on desktop) */}
+         <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
+           {/* Visualizer ("bars") Column with embedded timeline scrubber and stats */}
+@@ -406,49 +419,60 @@ function App() {
+ 
+           {/* Controls Column */}
+           <div className="order-2 lg:order-1 lg:col-span-4 xl:col-span-4 flex">
+-            <ControlBar
+-              algorithms={algorithms}
+-              selectedAlgorithm={selectedAlgorithm}
+-              onAlgorithmChange={(id) => {
+-                setSelectedAlgorithm(id);
+-                setTrace(null);
+-                setCurrentStepIndex(0);
+-                setIsPlaying(false);
+-                const restoreArr = baseArrayRef.current.length > 0 ? [...baseArrayRef.current] : (trace ? [...trace.initial_array] : currentArray);
+-                setCurrentArray([...restoreArr]);
+-                setBarStates(new Array(restoreArr.length).fill('default'));
+-                setCurrentComparisons(0);
+-                setCurrentSwaps(0);
+-                cachedStateRef.current = {
+-                  trace: null,
+-                  stepIndex: -1,
+-                  array: [],
+-                  sortedIndices: new Set<number>(),
+-                  comparisons: 0,
+-                  swaps: 0,
+-                };
+-              }}
+-              arraySize={arraySize}
+-              onArraySizeChange={handleArraySizeChange}
+-              onGenerateArray={(type) => generateArray(type, arraySize)}
+-              selectedArrayType={selectedArrayType}
+-              isPlaying={isPlaying}
+-              onTogglePlay={togglePlay}
+-              speedLevel={speedLevel}
+-              onSpeedLevelChange={setSpeedLevel}
+-              isMuted={isMuted}
+-              onToggleMute={toggleMute}
+-              isDark={isDark}
+-              onToggleTheme={toggleTheme}
+-            />
++            {isLoadingAlgorithms ? (
++              <div className="space-y-4 w-full bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
++                <Skeleton className="h-10 w-full" />
++                <Skeleton className="h-64 w-full mt-4 flex-1" />
++              </div>
++            ) : (
++              <ControlBar
++                algorithms={algorithms}
++                selectedAlgorithm={selectedAlgorithm}
++                onAlgorithmChange={(id) => {
++                  setSelectedAlgorithm(id);
++                  setTrace(null);
++                  setCurrentStepIndex(0);
++                  setIsPlaying(false);
++                  const restoreArr = baseArrayRef.current.length > 0 ? [...baseArrayRef.current] : (trace ? [...trace.initial_array] : currentArray);
++                  setCurrentArray([...restoreArr]);
++                  setBarStates(new Array(restoreArr.length).fill('default'));
++                  setCurrentComparisons(0);
++                  setCurrentSwaps(0);
++                  cachedStateRef.current = {
++                    trace: null,
++                    stepIndex: -1,
++                    array: [],
++                    sortedIndices: new Set<number>(),
++                    comparisons: 0,
++                    swaps: 0,
++                  };
++                }}
++                arraySize={arraySize}
++                onArraySizeChange={handleArraySizeChange}
++                onGenerateArray={(type) => generateArray(type, arraySize)}
++                selectedArrayType={selectedArrayType}
++                isPlaying={isPlaying}
++                onTogglePlay={togglePlay}
++                speedLevel={speedLevel}
++                onSpeedLevelChange={setSpeedLevel}
++                isMuted={isMuted}
++                onToggleMute={toggleMute}
++                isDark={isDark}
++                onToggleTheme={toggleTheme}
++              />
++            )}
+           </div>
+         </section>
+ 
+         {/* Lower section: 100% full width Algorithm Description & Complexities Card */}
+         <section className="w-full">
+-          <AlgorithmInfoCard
+-            algorithm={algorithms.find((a) => a.id === selectedAlgorithm) || null}
+-          />
++          {isLoadingAlgorithms ? (
++            <Skeleton className="h-48 w-full rounded-xl" />
++          ) : (
++            <AlgorithmInfoCard
++              algorithm={algorithms.find((a) => a.id === selectedAlgorithm) || null}
++            />
++          )}
+         </section>
+       </main>
+     </div>
+diff --git a/frontend/src/api/client.ts b/frontend/src/api/client.ts
+index 065ee2e..3ca510f 100644
+--- a/frontend/src/api/client.ts
++++ b/frontend/src/api/client.ts
+@@ -1,17 +1,66 @@
++import { z } from 'zod';
+ import type { AlgorithmMeta, Trace } from '../types/sort';
+ 
+ const API_BASE = import.meta.env.DEV ? 'http://localhost:8080/api' : '/api';
+ 
++// Zod schemas for rigorous validation
++const AlgorithmMetaSchema = z.object({
++    id: z.string(),
++    name: z.string(),
++    category: z.string(),
++    best_time: z.string(),
++    average_time: z.string(),
++    worst_time: z.string(),
++    space_complexity: z.string(),
++    stable: z.boolean(),
++    description: z.string(),
++});
++
++const StepSchema = z.object({
++    type: z.enum(['compare', 'swap', 'overwrite', 'pivot', 'mark_sorted']),
++    indices: z.array(z.number()),
++    description: z.string(),
++    value: z.number().optional(),
++});
++
++const TraceSchema = z.object({
++    algorithm: z.string(),
++    initial_array: z.array(z.number()),
++    final_array: z.array(z.number()),
++    steps: z.array(StepSchema),
++    total_steps: z.number(),
++    comparisons: z.number(),
++    swaps: z.number(),
++    execution_time_us: z.number(),
++});
++
++const APIErrorSchema = z.object({
++    status: z.string(),
++    message: z.string(),
++    code: z.number(),
++});
++
+ /**
+  * Retrieves the catalog of registered sorting algorithms and asymptotic metadata from the backend.
+  * @returns Array of AlgorithmMeta objects.
+  */
+ export async function fetchAlgorithms(): Promise<AlgorithmMeta[]> {
+     const response = await fetch(`${API_BASE}/algorithms`);
++    
+     if (!response.ok) {
+-        throw new Error(`Failed to fetch algorithms: ${response.statusText}`);
++        let errMsg = response.statusText;
++        try {
++            const errData = await response.json();
++            const parsedError = APIErrorSchema.parse(errData);
++            errMsg = parsedError.message;
++        } catch {
++            // fallback if not a structured JSON error
++        }
++        throw new Error(`Failed to fetch algorithms: ${errMsg}`);
+     }
+-    return response.json();
++
++    const data = await response.json();
++    return z.array(AlgorithmMetaSchema).parse(data) as AlgorithmMeta[];
+ }
+ 
+ /**
+@@ -30,8 +79,17 @@ export async function fetchSortTrace(algorithmId: string, array: number[]): Prom
+     });
+ 
+     if (!response.ok) {
+-        throw new Error(`Failed to fetch sort trace: ${response.statusText}`);
++        let errMsg = response.statusText;
++        try {
++            const errData = await response.json();
++            const parsedError = APIErrorSchema.parse(errData);
++            errMsg = parsedError.message;
++        } catch {
++            // fallback if not a structured JSON error
++        }
++        throw new Error(`Failed to fetch sort trace: ${errMsg}`);
+     }
+ 
+-    return response.json();
++    const data = await response.json();
++    return TraceSchema.parse(data) as Trace;
+ }
+diff --git a/frontend/src/components/ui/skeleton.tsx b/frontend/src/components/ui/skeleton.tsx
+new file mode 100644
+index 0000000..64fe0e4
+--- /dev/null
++++ b/frontend/src/components/ui/skeleton.tsx
+@@ -0,0 +1,16 @@
++import * as React from "react"
++import { cn } from "@/lib/utils"
++
++function Skeleton({
++  className,
++  ...props
++}: React.HTMLAttributes<HTMLDivElement>) {
++  return (
++    <div
++      className={cn("animate-pulse rounded-md bg-slate-200/60 dark:bg-slate-800/60", className)}
++      {...props}
++    />
++  )
++}
++
++export { Skeleton }
+diff --git a/frontend/src/components/ui/toast.tsx b/frontend/src/components/ui/toast.tsx
+new file mode 100644
+index 0000000..088a557
+--- /dev/null
++++ b/frontend/src/components/ui/toast.tsx
+@@ -0,0 +1,47 @@
++import { useEffect, useState } from 'react';
++import { AlertCircle, X } from 'lucide-react';
++import { cn } from '@/lib/utils';
++
++export interface ToastProps {
++  message: string;
++  onClose: () => void;
++  duration?: number;
++}
++
++export function Toast({ message, onClose, duration = 5000 }: ToastProps) {
++  const [isVisible, setIsVisible] = useState(false);
++
++  useEffect(() => {
++    // Trigger animation in
++    requestAnimationFrame(() => setIsVisible(true));
++
++    const timer = setTimeout(() => {
++      setIsVisible(false);
++      setTimeout(onClose, 300); // wait for animation out
++    }, duration);
++
++    return () => clearTimeout(timer);
++  }, [duration, onClose]);
++
++  return (
++    <div
++      className={cn(
++        "fixed bottom-4 right-4 z-[100] flex items-center gap-3 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/90 p-4 text-sm font-medium text-red-800 dark:text-red-300 shadow-lg transition-all duration-300 transform",
++        isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0 pointer-events-none"
++      )}
++      role="alert"
++    >
++      <AlertCircle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
++      <span>{message}</span>
++      <button 
++        onClick={() => {
++          setIsVisible(false);
++          setTimeout(onClose, 300);
++        }}
++        className="ml-4 p-1 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
++      >
++        <X className="h-4 w-4" />
++      </button>
++    </div>
++  );
++}
+diff --git a/frontend/src/lib/utils.ts b/frontend/src/lib/utils.ts
+index 2819a83..d084cca 100644
+--- a/frontend/src/lib/utils.ts
++++ b/frontend/src/lib/utils.ts
+@@ -1,6 +1,6 @@
+-import { clsx, type ClassValue } from 'clsx';
+-import { twMerge } from 'tailwind-merge';
++import { type ClassValue, clsx } from "clsx"
++import { twMerge } from "tailwind-merge"
+ 
+ export function cn(...inputs: ClassValue[]) {
+-  return twMerge(clsx(inputs));
++  return twMerge(clsx(inputs))
+ }
+diff --git a/internal/api/handlers.go b/internal/api/handlers.go
+index feb944d..f03b151 100644
+--- a/internal/api/handlers.go
++++ b/internal/api/handlers.go
+@@ -7,10 +7,29 @@ import (
+ 	"sortpulse/internal/sorter"
+ )
+ 
++// APIError represents a standardized JSON error response.
++type APIError struct {
++	Status  string `json:"status"`
++	Message string `json:"message"`
++	Code    int    `json:"code"`
++}
++
++// sendJSONError writes a standardized JSON error response.
++func sendJSONError(w http.ResponseWriter, message string, code int) {
++	w.Header().Set("Content-Type", "application/json")
++	w.Header().Set("X-Content-Type-Options", "nosniff")
++	w.WriteHeader(code)
++	json.NewEncoder(w).Encode(APIError{
++		Status:  "error",
++		Message: message,
++		Code:    code,
++	})
++}
++
+ // HandleAlgorithms returns a list of all registered sorting algorithms.
+ func HandleAlgorithms(w http.ResponseWriter, r *http.Request) {
+ 	if r.Method != http.MethodGet {
+-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
++		sendJSONError(w, "Method not allowed", http.StatusMethodNotAllowed)
+ 		return
+ 	}
+ 
+@@ -29,7 +48,7 @@ type SortRequest struct {
+ // HandleSort executes a sort using the specified algorithm and input array.
+ func HandleSort(w http.ResponseWriter, r *http.Request) {
+ 	if r.Method != http.MethodPost {
+-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
++		sendJSONError(w, "Method not allowed", http.StatusMethodNotAllowed)
+ 		return
+ 	}
+ 
+@@ -38,30 +57,30 @@ func HandleSort(w http.ResponseWriter, r *http.Request) {
+ 
+ 	var req SortRequest
+ 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+-		http.Error(w, "Invalid JSON payload or body too large", http.StatusBadRequest)
++		sendJSONError(w, "Invalid JSON payload or body too large", http.StatusBadRequest)
+ 		return
+ 	}
+ 
+ 	if len(req.Array) == 0 {
+-		http.Error(w, "Array cannot be empty", http.StatusBadRequest)
++		sendJSONError(w, "Array cannot be empty", http.StatusBadRequest)
+ 		return
+ 	}
+ 
+ 	if len(req.Array) > 500 {
+-		http.Error(w, "Array is too large (max 500 items)", http.StatusBadRequest)
++		sendJSONError(w, "Array is too large (max 500 items)", http.StatusBadRequest)
+ 		return
+ 	}
+ 
+ 	for _, v := range req.Array {
+ 		if v < -100000 || v > 100000 {
+-			http.Error(w, "Array values must be within [-100,000, 100,000]", http.StatusBadRequest)
++			sendJSONError(w, "Array values must be within [-100000, 100000]", http.StatusBadRequest)
+ 			return
+ 		}
+ 	}
+ 
+ 	s, ok := sorter.Get(req.Algorithm)
+ 	if !ok {
+-		http.Error(w, "Unknown algorithm", http.StatusBadRequest)
++		sendJSONError(w, "Unknown algorithm", http.StatusBadRequest)
+ 		return
+ 	}
+ 
+diff --git a/internal/api/middleware.go b/internal/api/middleware.go
+new file mode 100644
+index 0000000..76beece
+--- /dev/null
++++ b/internal/api/middleware.go
+@@ -0,0 +1,20 @@
++package api
++
++import (
++	"log"
++	"net/http"
++)
++
++// WithRecovery is a middleware that recovers from panics anywhere in the request chain
++// and writes a standardized JSON 500 error response instead of exposing stack traces.
++func WithRecovery(next http.Handler) http.Handler {
++	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		defer func() {
++			if err := recover(); err != nil {
++				log.Printf("panic recovered: %v", err)
++				sendJSONError(w, "Internal Server Error", http.StatusInternalServerError)
++			}
++		}()
++		next.ServeHTTP(w, r)
++	})
++}
+diff --git a/patch_backend_errors.sh b/patch_backend_errors.sh
+new file mode 100644
+index 0000000..25b693d
+--- /dev/null
++++ b/patch_backend_errors.sh
+@@ -0,0 +1,94 @@
++#!/bin/bash
++cat << 'INNER_EOF' > internal/api/handlers.go
++package api
++
++import (
++	"encoding/json"
++	"net/http"
++
++	"sortpulse/internal/sorter"
++)
++
++// APIError represents a standardized JSON error response.
++type APIError struct {
++	Status  string `json:"status"`
++	Message string `json:"message"`
++	Code    int    `json:"code"`
++}
++
++// sendJSONError writes a standardized JSON error response.
++func sendJSONError(w http.ResponseWriter, message string, code int) {
++	w.Header().Set("Content-Type", "application/json")
++	w.Header().Set("X-Content-Type-Options", "nosniff")
++	w.WriteHeader(code)
++	json.NewEncoder(w).Encode(APIError{
++		Status:  "error",
++		Message: message,
++		Code:    code,
++	})
++}
++
++// HandleAlgorithms returns a list of all registered sorting algorithms.
++func HandleAlgorithms(w http.ResponseWriter, r *http.Request) {
++	if r.Method != http.MethodGet {
++		sendJSONError(w, "Method not allowed", http.StatusMethodNotAllowed)
++		return
++	}
++
++	metas := sorter.List()
++
++	w.Header().Set("Content-Type", "application/json")
++	json.NewEncoder(w).Encode(metas)
++}
++
++// SortRequest defines the JSON payload accepted by HandleSort.
++type SortRequest struct {
++	Algorithm string `json:"algorithm"`
++	Array     []int  `json:"array"`
++}
++
++// HandleSort executes a sort using the specified algorithm and input array.
++func HandleSort(w http.ResponseWriter, r *http.Request) {
++	if r.Method != http.MethodPost {
++		sendJSONError(w, "Method not allowed", http.StatusMethodNotAllowed)
++		return
++	}
++
++	// Limit request payload to 1MB to guard against DoS/OOM
++	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
++
++	var req SortRequest
++	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
++		sendJSONError(w, "Invalid JSON payload or body too large", http.StatusBadRequest)
++		return
++	}
++
++	if len(req.Array) == 0 {
++		sendJSONError(w, "Array cannot be empty", http.StatusBadRequest)
++		return
++	}
++
++	if len(req.Array) > 500 {
++		sendJSONError(w, "Array is too large (max 500 items)", http.StatusBadRequest)
++		return
++	}
++
++	for _, v := range req.Array {
++		if v < -100000 || v > 100000 {
++			sendJSONError(w, "Array values must be within [-100000, 100000]", http.StatusBadRequest)
++			return
++		}
++	}
++
++	s, ok := sorter.Get(req.Algorithm)
++	if !ok {
++		sendJSONError(w, "Unknown algorithm", http.StatusBadRequest)
++		return
++	}
++
++	trace := s.Sort(req.Array)
++
++	w.Header().Set("Content-Type", "application/json")
++	json.NewEncoder(w).Encode(trace)
++}
++INNER_EOF
+diff --git a/patch_client.sh b/patch_client.sh
+new file mode 100644
+index 0000000..fa1e42e
+--- /dev/null
++++ b/patch_client.sh
+@@ -0,0 +1,98 @@
++#!/bin/bash
++cat << 'INNER_EOF' > frontend/src/api/client.ts
++import { z } from 'zod';
++import type { AlgorithmMeta, Trace } from '../types/sort';
++
++const API_BASE = import.meta.env.DEV ? 'http://localhost:8080/api' : '/api';
++
++// Zod schemas for rigorous validation
++const AlgorithmMetaSchema = z.object({
++    id: z.string(),
++    name: z.string(),
++    category: z.string(),
++    best_time: z.string(),
++    average_time: z.string(),
++    worst_time: z.string(),
++    space_complexity: z.string(),
++    stable: z.boolean(),
++    description: z.string(),
++});
++
++const StepSchema = z.object({
++    type: z.enum(['compare', 'swap', 'overwrite', 'pivot', 'mark_sorted']),
++    indices: z.array(z.number()),
++    description: z.string(),
++    value: z.number().optional(),
++});
++
++const TraceSchema = z.object({
++    algorithm: z.string(),
++    initial_array: z.array(z.number()),
++    final_array: z.array(z.number()),
++    steps: z.array(StepSchema),
++    total_steps: z.number(),
++    comparisons: z.number(),
++    swaps: z.number(),
++    execution_time_us: z.number(),
++});
++
++const APIErrorSchema = z.object({
++    status: z.string(),
++    message: z.string(),
++    code: z.number(),
++});
++
++/**
++ * Retrieves the catalog of registered sorting algorithms and asymptotic metadata from the backend.
++ * @returns Array of AlgorithmMeta objects.
++ */
++export async function fetchAlgorithms(): Promise<AlgorithmMeta[]> {
++    const response = await fetch(`${API_BASE}/algorithms`);
++    
++    if (!response.ok) {
++        let errMsg = response.statusText;
++        try {
++            const errData = await response.json();
++            const parsedError = APIErrorSchema.parse(errData);
++            errMsg = parsedError.message;
++        } catch {
++            // fallback if not a structured JSON error
++        }
++        throw new Error(`Failed to fetch algorithms: ${errMsg}`);
++    }
++
++    const data = await response.json();
++    return z.array(AlgorithmMetaSchema).parse(data) as AlgorithmMeta[];
++}
++
++/**
++ * Dispatches an array and algorithm ID to the server to compute and record the step-by-step trace.
++ * @param algorithmId Identifier of the sorting algorithm (e.g. 'bubble', 'quick').
++ * @param array Array of integers to sort.
++ * @returns Fully deterministic Trace object with steps and statistics.
++ */
++export async function fetchSortTrace(algorithmId: string, array: number[]): Promise<Trace> {
++    const response = await fetch(`${API_BASE}/sort`, {
++        method: 'POST',
++        headers: {
++            'Content-Type': 'application/json',
++        },
++        body: JSON.stringify({ algorithm: algorithmId, array }),
++    });
++
++    if (!response.ok) {
++        let errMsg = response.statusText;
++        try {
++            const errData = await response.json();
++            const parsedError = APIErrorSchema.parse(errData);
++            errMsg = parsedError.message;
++        } catch {
++            // fallback if not a structured JSON error
++        }
++        throw new Error(`Failed to fetch sort trace: ${errMsg}`);
++    }
++
++    const data = await response.json();
++    return TraceSchema.parse(data) as Trace;
++}
++INNER_EOF
+diff --git a/patch_recovery.sh b/patch_recovery.sh
+new file mode 100644
+index 0000000..bf883a4
+--- /dev/null
++++ b/patch_recovery.sh
+@@ -0,0 +1,23 @@
++#!/bin/bash
++cat << 'INNER_EOF' > internal/api/middleware.go
++package api
++
++import (
++	"log"
++	"net/http"
++)
++
++// WithRecovery is a middleware that recovers from panics anywhere in the request chain
++// and writes a standardized JSON 500 error response instead of exposing stack traces.
++func WithRecovery(next http.Handler) http.Handler {
++	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		defer func() {
++			if err := recover(); err != nil {
++				log.Printf("panic recovered: %v", err)
++				sendJSONError(w, "Internal Server Error", http.StatusInternalServerError)
++			}
++		}()
++		next.ServeHTTP(w, r)
++	})
++}
++INNER_EOF
+diff --git a/patch_skeleton.sh b/patch_skeleton.sh
+new file mode 100644
+index 0000000..5f58fe8
+--- /dev/null
++++ b/patch_skeleton.sh
+@@ -0,0 +1,19 @@
++#!/bin/bash
++cat << 'INNER_EOF' > frontend/src/components/ui/skeleton.tsx
++import React from "react"
++import { cn } from "../../lib/utils"
++
++function Skeleton({
++  className,
++  ...props
++}: React.HTMLAttributes<HTMLDivElement>) {
++  return (
++    <div
++      className={cn("animate-pulse rounded-md bg-slate-200/50 dark:bg-slate-800/50", className)}
++      {...props}
++    />
++  )
++}
++
++export { Skeleton }
++INNER_EOF
+diff --git a/patch_skeleton2.sh b/patch_skeleton2.sh
+new file mode 100644
+index 0000000..ab739bb
+--- /dev/null
++++ b/patch_skeleton2.sh
+@@ -0,0 +1,19 @@
++#!/bin/bash
++cat << 'INNER_EOF' > frontend/src/components/ui/skeleton.tsx
++import React from "react"
++import { cn } from "@/lib/utils"
++
++function Skeleton({
++  className,
++  ...props
++}: React.HTMLAttributes<HTMLDivElement>) {
++  return (
++    <div
++      className={cn("animate-pulse rounded-md bg-slate-200/60 dark:bg-slate-800/60", className)}
++      {...props}
++    />
++  )
++}
++
++export { Skeleton }
++INNER_EOF
+diff --git a/patch_skeleton_react.sh b/patch_skeleton_react.sh
+new file mode 100644
+index 0000000..156c357
+--- /dev/null
++++ b/patch_skeleton_react.sh
+@@ -0,0 +1,19 @@
++#!/bin/bash
++cat << 'INNER_EOF' > frontend/src/components/ui/skeleton.tsx
++import * as React from "react"
++import { cn } from "@/lib/utils"
++
++function Skeleton({
++  className,
++  ...props
++}: React.HTMLAttributes<HTMLDivElement>) {
++  return (
++    <div
++      className={cn("animate-pulse rounded-md bg-slate-200/60 dark:bg-slate-800/60", className)}
++      {...props}
++    />
++  )
++}
++
++export { Skeleton }
++INNER_EOF
+diff --git a/patch_toast.sh b/patch_toast.sh
+new file mode 100644
+index 0000000..a3fc411
+--- /dev/null
++++ b/patch_toast.sh
+@@ -0,0 +1,50 @@
++#!/bin/bash
++cat << 'INNER_EOF' > frontend/src/components/ui/toast.tsx
++import React, { useEffect, useState } from 'react';
++import { AlertCircle, X } from 'lucide-react';
++import { cn } from '../../lib/utils';
++
++export interface ToastProps {
++  message: string;
++  onClose: () => void;
++  duration?: number;
++}
++
++export function Toast({ message, onClose, duration = 5000 }: ToastProps) {
++  const [isVisible, setIsVisible] = useState(false);
++
++  useEffect(() => {
++    // Trigger animation in
++    requestAnimationFrame(() => setIsVisible(true));
++
++    const timer = setTimeout(() => {
++      setIsVisible(false);
++      setTimeout(onClose, 300); // wait for animation out
++    }, duration);
++
++    return () => clearTimeout(timer);
++  }, [duration, onClose]);
++
++  return (
++    <div
++      className={cn(
++        "fixed bottom-4 right-4 z-50 flex items-center gap-3 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/90 p-4 text-sm font-medium text-red-800 dark:text-red-300 shadow-lg transition-all duration-300 transform",
++        isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
++      )}
++      role="alert"
++    >
++      <AlertCircle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
++      <span>{message}</span>
++      <button 
++        onClick={() => {
++          setIsVisible(false);
++          setTimeout(onClose, 300);
++        }}
++        className="ml-4 p-1 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
++      >
++        <X className="h-4 w-4" />
++      </button>
++    </div>
++  );
++}
++INNER_EOF
+diff --git a/patch_toast2.sh b/patch_toast2.sh
+new file mode 100644
+index 0000000..1772b6a
+--- /dev/null
++++ b/patch_toast2.sh
+@@ -0,0 +1,50 @@
++#!/bin/bash
++cat << 'INNER_EOF' > frontend/src/components/ui/toast.tsx
++import React, { useEffect, useState } from 'react';
++import { AlertCircle, X } from 'lucide-react';
++import { cn } from '@/lib/utils';
++
++export interface ToastProps {
++  message: string;
++  onClose: () => void;
++  duration?: number;
++}
++
++export function Toast({ message, onClose, duration = 5000 }: ToastProps) {
++  const [isVisible, setIsVisible] = useState(false);
++
++  useEffect(() => {
++    // Trigger animation in
++    requestAnimationFrame(() => setIsVisible(true));
++
++    const timer = setTimeout(() => {
++      setIsVisible(false);
++      setTimeout(onClose, 300); // wait for animation out
++    }, duration);
++
++    return () => clearTimeout(timer);
++  }, [duration, onClose]);
++
++  return (
++    <div
++      className={cn(
++        "fixed bottom-4 right-4 z-[100] flex items-center gap-3 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/90 p-4 text-sm font-medium text-red-800 dark:text-red-300 shadow-lg transition-all duration-300 transform",
++        isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0 pointer-events-none"
++      )}
++      role="alert"
++    >
++      <AlertCircle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
++      <span>{message}</span>
++      <button 
++        onClick={() => {
++          setIsVisible(false);
++          setTimeout(onClose, 300);
++        }}
++        className="ml-4 p-1 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
++      >
++        <X className="h-4 w-4" />
++      </button>
++    </div>
++  );
++}
++INNER_EOF
+diff --git a/patch_toast_react.sh b/patch_toast_react.sh
+new file mode 100644
+index 0000000..a2b69ab
+--- /dev/null
++++ b/patch_toast_react.sh
+@@ -0,0 +1,50 @@
++#!/bin/bash
++cat << 'INNER_EOF' > frontend/src/components/ui/toast.tsx
++import { useEffect, useState } from 'react';
++import { AlertCircle, X } from 'lucide-react';
++import { cn } from '@/lib/utils';
++
++export interface ToastProps {
++  message: string;
++  onClose: () => void;
++  duration?: number;
++}
++
++export function Toast({ message, onClose, duration = 5000 }: ToastProps) {
++  const [isVisible, setIsVisible] = useState(false);
++
++  useEffect(() => {
++    // Trigger animation in
++    requestAnimationFrame(() => setIsVisible(true));
++
++    const timer = setTimeout(() => {
++      setIsVisible(false);
++      setTimeout(onClose, 300); // wait for animation out
++    }, duration);
++
++    return () => clearTimeout(timer);
++  }, [duration, onClose]);
++
++  return (
++    <div
++      className={cn(
++        "fixed bottom-4 right-4 z-[100] flex items-center gap-3 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/90 p-4 text-sm font-medium text-red-800 dark:text-red-300 shadow-lg transition-all duration-300 transform",
++        isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0 pointer-events-none"
++      )}
++      role="alert"
++    >
++      <AlertCircle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
++      <span>{message}</span>
++      <button 
++        onClick={() => {
++          setIsVisible(false);
++          setTimeout(onClose, 300);
++        }}
++        className="ml-4 p-1 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
++      >
++        <X className="h-4 w-4" />
++      </button>
++    </div>
++  );
++}
++INNER_EOF
+diff --git a/patch_zod.sh b/patch_zod.sh
+new file mode 100644
+index 0000000..1524e88
+--- /dev/null
++++ b/patch_zod.sh
+@@ -0,0 +1,98 @@
++#!/bin/bash
++cat << 'INNER_EOF' > frontend/src/api/client.ts
++import { z } from 'zod';
++import type { AlgorithmMeta, Trace } from '../types/sort';
++
++const API_BASE = import.meta.env.DEV ? 'http://localhost:8080/api' : '/api';
++
++// Zod schemas for rigorous validation
++const AlgorithmMetaSchema = z.object({
++    id: z.string(),
++    name: z.string(),
++    category: z.string(),
++    best_time: z.string(),
++    average_time: z.string(),
++    worst_time: z.string(),
++    space_complexity: z.string(),
++    stable: z.boolean(),
++    description: z.string(),
++});
++
++const StepSchema = z.object({
++    type: z.enum(['compare', 'swap', 'overwrite', 'pivot', 'mark_sorted']),
++    indices: z.array(z.number()),
++    description: z.string(),
++    value: z.number().optional(),
++});
++
++const TraceSchema = z.object({
++    algorithm: z.string(),
++    initial_array: z.array(z.number()),
++    final_array: z.array(z.number()),
++    steps: z.array(StepSchema),
++    total_steps: z.number(),
++    comparisons: z.number(),
++    swaps: z.number(),
++    execution_time_us: z.number(),
++});
++
++const APIErrorSchema = z.object({
++    status: z.string(),
++    message: z.string(),
++    code: z.number(),
++});
++
++/**
++ * Retrieves the catalog of registered sorting algorithms and asymptotic metadata from the backend.
++ * @returns Array of AlgorithmMeta objects.
++ */
++export async function fetchAlgorithms(): Promise<AlgorithmMeta[]> {
++    const response = await fetch(`${API_BASE}/algorithms`);
++    
++    if (!response.ok) {
++        let errMsg = response.statusText;
++        try {
++            const errData = await response.json();
++            const parsedError = APIErrorSchema.parse(errData);
++            errMsg = parsedError.message;
++        } catch (e) {
++            // fallback if not a structured JSON error
++        }
++        throw new Error(`Failed to fetch algorithms: ${errMsg}`);
++    }
++
++    const data = await response.json();
++    return z.array(AlgorithmMetaSchema).parse(data) as AlgorithmMeta[];
++}
++
++/**
++ * Dispatches an array and algorithm ID to the server to compute and record the step-by-step trace.
++ * @param algorithmId Identifier of the sorting algorithm (e.g. 'bubble', 'quick').
++ * @param array Array of integers to sort.
++ * @returns Fully deterministic Trace object with steps and statistics.
++ */
++export async function fetchSortTrace(algorithmId: string, array: number[]): Promise<Trace> {
++    const response = await fetch(`${API_BASE}/sort`, {
++        method: 'POST',
++        headers: {
++            'Content-Type': 'application/json',
++        },
++        body: JSON.stringify({ algorithm: algorithmId, array }),
++    });
++
++    if (!response.ok) {
++        let errMsg = response.statusText;
++        try {
++            const errData = await response.json();
++            const parsedError = APIErrorSchema.parse(errData);
++            errMsg = parsedError.message;
++        } catch (e) {
++            // fallback if not a structured JSON error
++        }
++        throw new Error(`Failed to fetch sort trace: ${errMsg}`);
++    }
++
++    const data = await response.json();
++    return TraceSchema.parse(data) as Trace;
++}
++INNER_EOF
+

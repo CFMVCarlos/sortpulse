@@ -1,3 +1,5 @@
+#!/bin/bash
+cat << 'INNER_EOF' > frontend/src/api/client.ts
 import { z } from 'zod';
 import type { AlgorithmMeta, Trace } from '../types/sort';
 
@@ -53,7 +55,7 @@ export async function fetchAlgorithms(): Promise<AlgorithmMeta[]> {
             const errData = await response.json();
             const parsedError = APIErrorSchema.parse(errData);
             errMsg = parsedError.message;
-        } catch {
+        } catch (e) {
             // fallback if not a structured JSON error
         }
         throw new Error(`Failed to fetch algorithms: ${errMsg}`);
@@ -84,7 +86,7 @@ export async function fetchSortTrace(algorithmId: string, array: number[]): Prom
             const errData = await response.json();
             const parsedError = APIErrorSchema.parse(errData);
             errMsg = parsedError.message;
-        } catch {
+        } catch (e) {
             // fallback if not a structured JSON error
         }
         throw new Error(`Failed to fetch sort trace: ${errMsg}`);
@@ -93,3 +95,4 @@ export async function fetchSortTrace(algorithmId: string, array: number[]): Prom
     const data = await response.json();
     return TraceSchema.parse(data) as Trace;
 }
+INNER_EOF

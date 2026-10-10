@@ -1,3 +1,5 @@
+#!/bin/bash
+cat << 'INNER_EOF' > frontend/src/api/client.ts
 import { z } from 'zod';
 import type { AlgorithmMeta, Trace } from '../types/sort';
 
@@ -93,3 +95,4 @@ export async function fetchSortTrace(algorithmId: string, array: number[]): Prom
     const data = await response.json();
     return TraceSchema.parse(data) as Trace;
 }
+INNER_EOF

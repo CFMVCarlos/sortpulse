@@ -1,3 +1,5 @@
+#!/bin/bash
+cat << 'INNER_EOF' > internal/api/handlers.go
 package api
 
 import (
@@ -89,3 +91,4 @@ func HandleSort(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(trace)
 }
+INNER_EOF
